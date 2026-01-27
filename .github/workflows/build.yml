@@ -1,8 +1,8 @@
 name: Build And Publish App
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 jobs:
   publish-x32-win32:
