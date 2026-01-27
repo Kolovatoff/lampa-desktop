@@ -2,12 +2,14 @@ name: Build And Publish App
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Например: v1.0.0, v1.0.1
 
 jobs:
   publish-x32-win32:
     name: Publish x32 and x64 for Windows
     runs-on: windows-latest
+    outputs:
+      tag: ${{ steps.extract_tag.outputs.tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,6 +22,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Extract tag name
+        id: extract_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
       - name: Publish x32 for Windows
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,9 +36,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run publish-x64-win32
 
+      # Сохраняем выходные данные (нужны для релиза)
+      - name: Upload artifacts (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: win-binaries-${{ steps.extract_tag.outputs.tag }}
+          path: dist/win/  # Путь, где лежат собранные файлы
+
   publish-x64-linux:
     name: Publish x64 for Linux
     runs-on: ubuntu-latest
+    needs: publish-x32-win32
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -49,3 +63,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run publish-x64-linux
+
+      - name: Upload artifact (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-binaries-${{ needs.publish-x32-win32.outputs.tag }}
+          path: dist/linux/  # Укажи правильный путь
+
+  create-release:
+    name: Create GitHub Release
+    needs: [publish-x32-win32, publish-x64-linux]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Get tag name
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+        with:
+          path: releases/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          body: |
+            This is an automated release generated from tag `${{ steps.get_tag.outputs.tag }}`.
+            
+            🚀 Built and published automatically via CI.
+          draft: false
+          prerelease: ${{ contains(steps.get_tag.outputs.tag, 'beta') || contains(steps.get_tag.outputs.tag, 'rc') }}
+          files: |
+            releases/**/*
