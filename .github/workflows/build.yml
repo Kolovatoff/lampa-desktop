@@ -1,5 +1,8 @@
 name: Build And Publish App
 
+env:
+  ARTIFACT_DIR: out/com.lampa.desktop/make
+
 on:
   push:
     tags:
@@ -32,8 +35,8 @@ jobs:
         with:
           name: windows-builds
           path: |
-            dist/win32-x32/*
-            dist/win32-x64/*
+            ${{ env.ARTIFACT_DIR }}/*.zip
+            ${{ env.ARTIFACT_DIR }}/*.exe
 
   publish-x64-linux:
     name: Publish x64 for Linux
@@ -56,8 +59,10 @@ jobs:
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-build
-          path: dist/linux-x64/*
+          name: linux-builds
+          path: |
+            ${{ env.ARTIFACT_DIR }}/*.zip
+            ${{ env.ARTIFACT_DIR }}/*.deb
 
   create-release:
     needs: [publish-x32-win32, publish-x64-linux]
