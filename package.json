@@ -1,0 +1,50 @@
+{
+  "name": "lampa-desktop",
+  "productName": "Lampa",
+  "version": "1.0.0-b1",
+  "description": "Десктоп приложение для Lampa",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kolovatoff/lampa-desktop"
+  },
+  "main": "src/index.js",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make-x32-win32": "electron-forge make --arch=ia32 --platform=win32",
+    "make-x64-win32": "electron-forge make --arch=x64 --platform=win32",
+    "make-x64-linux": "electron-forge make --arch=x64 --platform=linux",
+    "make": "electron-forge make",
+    "publish-x32-win32": "electron-forge publish --arch=ia32 --platform=win32",
+    "publish-x64-win32": "electron-forge publish --arch=x64 --platform=win32",
+    "publish-x64-linux": "electron-forge publish --arch=x64 --platform=linux",
+    "lint": "echo \"No linting configured\""
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.10.2",
+    "@electron-forge/maker-deb": "^7.10.2",
+    "@electron-forge/maker-flatpak": "^7.10.2",
+    "@electron-forge/maker-rpm": "^7.10.2",
+    "@electron-forge/maker-squirrel": "^7.10.2",
+    "@electron-forge/maker-zip": "^7.10.2",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+    "@electron-forge/plugin-fuses": "^7.10.2",
+    "@electron-forge/publisher-github": "^7.10.2",
+    "@electron/fuses": "^1.8.0",
+    "electron": "39.1.2",
+    "electron-log": "^5.4.3"
+  },
+  "author": {
+    "name": "ymata, GideonWhite1029, Boria138, Kolovatoff",
+    "email": "kirill@kolovatov.ru"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "cors-anywhere": "^0.4.4",
+    "electron-squirrel-startup": "^1.0.1",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.5",
+    "update-electron-app": "^3.1.1",
+    "which": "^6.0.0"
+  }
+}
