@@ -36,17 +36,17 @@
     "artifactName": "lampa-${arch}-${version}.${ext}",
     "linux": {
       "target": "AppImage",
-      "icon": "icons/og.png",
+      "icon": "icons/linux.png",
       "category": "Multimedia"
     },
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "icons/og.png",
+      "icon": "icons/mac.png",
       "target": ["dmg"]
     },
     "win": {
       "target": ["nsis"],
-      "icon": "icons/og.ico",
+      "icon": "icons/win.ico",
       "verifyUpdateCodeSignature": true
     },
     "nsis": {
@@ -55,8 +55,8 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "runAfterFinish": false,
-      "installerIcon": "icons/og.ico",
-      "uninstallerIcon": "icons/og.ico",
+      "installerIcon": "icons/win.ico",
+      "uninstallerIcon": "icons/win.ico",
       "license": "LICENSE"
     },
     "publish": {
