@@ -12,6 +12,9 @@ on:
 jobs:
   build-linux:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      changelog_body: ${{ steps.changelog.outputs.body }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -141,11 +144,17 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v7
 
+      - name: Show debug info
+        run: |
+          echo "Version from build-linux: ${{ needs.build-linux.outputs.version }}"
+          echo "Changelog from build-linux: ${{ needs.build-linux.outputs.changelog_body }}"
+
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          body: ${{ steps.changelog.outputs.body }}
+          # Используем ref_name напрямую или собираем с v
+          tag_name: ${{ github.ref_name }}  # или v${{ needs.build-linux.outputs.version }}
+          body: ${{ needs.build-linux.outputs.changelog_body }}
           files: |
             lampa-linux/*.AppImage
             lampa-macos/*.dmg
