@@ -89,5 +89,11 @@
       "owner": "Kolovatoff",
       "repo": "lampa-desktop"
     }
-  }
+  },
+  "files": [
+    "assets/**/*",
+    "src/**/*",
+    "node_modules/*",
+    "!dist/*"
+  ]
 }

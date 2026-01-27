@@ -6,7 +6,7 @@ const which = require("which");
 
 let proxyProcess;
 function startProxy() {
-  proxyProcess = spawn("node", [path.join(__dirname, "proxy.js")]);
+  proxyProcess = spawn(process.execPath, [path.join(__dirname, "proxy.js")]);
   proxyProcess.stdout.on("data", (data) => {
     console.log(`Proxy: ${data}`);
   });

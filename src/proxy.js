@@ -1,26 +1,9 @@
-// // proxy.js
-// const corsAnywhere = require("cors-anywhere");
-//
-// // Configure proxy settings
-// const PORT = 8081; // Proxy port (choose an unused port)
-// const ALLOWED_ORIGINS = [
-//   "http://lampa.mx",
-// ];
-//
-// // Start the proxy server
-// const server = corsAnywhere.createServer({
-//   originWhitelist: ALLOWED_ORIGINS, // Restrict origins to your app
-// });
-//
-// // Listen for requests
-// server.listen(PORT, () => {
-//   console.log(`CORS proxy running on http://localhost:${PORT}`);
-// });
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const app = express();
 const PORT = 4000; // Порт для прокси
+const HOSTNAME = "localhost"; // Явно указываем hostname
 
 // Разрешаем CORS для всех запросов
 app.use((req, res, next) => {
@@ -52,6 +35,7 @@ app.use(
   }),
 );
 
-app.listen(PORT, () => {
-  console.log(`CORS proxy running on http://localhost:${PORT}`);
+// Указываем hostname при запуске сервера
+app.listen(PORT, HOSTNAME, () => {
+  console.log(`CORS proxy running on http://${HOSTNAME}:${PORT}`);
 });
