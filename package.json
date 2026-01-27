@@ -8,22 +8,43 @@
     "url": "https://github.com/Kolovatoff/lampa-desktop"
   },
   "main": "src/index.js",
+  "engines": {
+    "node": ">=22.13.0 <23.0.0",
+    "npm": "please-use-yarn",
+    "yarn": ">= 4.0.0"
+  },
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
     "build-linux": "electron-builder --linux --publish=never",
     "build-mac": "electron-builder --mac --x64 --arm64 --publish=never",
-    "build-win": "electron-builder --win --x64 --ia32 --publish=never"
+    "build-win": "electron-builder --win --x64 --ia32 --publish=never",
+    "lint": "yarn lint:eslint && yarn lint:prettier",
+    "lint:eslint": "eslint .",
+    "lint:prettier": "prettier . --check",
+    "lintfix": "eslint . --fix && prettier --write --list-different .",
+    "release:changelog": "commit-and-tag-version",
+    "release": "yarn release:changelog && git push --follow-tags origin $CI_COMMIT_REF_NAME"
+  },
+  "commit-and-tag-version": {
+    "scripts": {
+      "postchangelog": "yarn lintfix"
+    }
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1",
-    "express": "^5.2.1",
-    "http-proxy-middleware": "^3.0.5",
-    "which": "^6.0.0"
+    "express": "5.2.1",
+    "http-proxy-middleware": "3.0.5",
+    "which": "6.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "9.39.2",
+    "commit-and-tag-version": "12.6.1",
     "electron": "40.0.0",
-    "electron-builder": "26.4.0"
+    "electron-builder": "26.4.0",
+    "eslint": "9.39.2",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.2.0",
+    "prettier": "3.7.4"
   },
   "author": {
     "name": "ymata, GideonWhite1029, Boria138, Kolovatoff",
@@ -42,10 +63,14 @@
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "icons/mac.png",
-      "target": ["dmg"]
+      "target": [
+        "dmg"
+      ]
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "icons/win.ico",
       "verifyUpdateCodeSignature": true
     },
