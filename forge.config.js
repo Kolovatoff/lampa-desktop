@@ -8,7 +8,7 @@ module.exports = {
     arch: ["x64", "ia32"],
     platform: ["win32", "linux", "darwin"],
     asar: true,
-    executableName: "lampa",
+    executableName: "lampa-desktop",
     icon: "icons/og.png"
   },
   rebuildConfig: {},
