@@ -9,42 +9,60 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make-x32-win32": "electron-forge make --arch=ia32 --platform=win32",
-    "make-x64-win32": "electron-forge make --arch=x64 --platform=win32",
-    "make-x64-linux": "electron-forge make --arch=x64 --platform=linux",
-    "make": "electron-forge make",
-    "publish-x32-win32": "electron-forge publish --arch=ia32 --platform=win32",
-    "publish-x64-win32": "electron-forge publish --arch=x64 --platform=win32",
-    "publish-x64-linux": "electron-forge publish --arch=x64 --platform=linux",
-    "lint": "echo \"No linting configured\""
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build-linux": "electron-builder --linux --publish=never",
+    "build-mac": "electron-builder --mac --x64 --arm64 --publish=never",
+    "build-win": "electron-builder --win --x64 --ia32 --publish=never"
+  },
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.5",
+    "which": "^6.0.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^7.10.2",
-    "@electron-forge/maker-deb": "^7.10.2",
-    "@electron-forge/maker-flatpak": "^7.10.2",
-    "@electron-forge/maker-rpm": "^7.10.2",
-    "@electron-forge/maker-squirrel": "^7.10.2",
-    "@electron-forge/maker-zip": "^7.10.2",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
-    "@electron-forge/plugin-fuses": "^7.10.2",
-    "@electron-forge/publisher-github": "^7.10.2",
-    "@electron/fuses": "^1.8.0",
-    "electron": "39.1.2",
-    "electron-log": "^5.4.3"
+    "electron": "40.0.0",
+    "electron-builder": "26.4.0"
   },
   "author": {
     "name": "ymata, GideonWhite1029, Boria138, Kolovatoff",
     "email": "kirill@kolovatov.ru"
   },
   "license": "MIT",
-  "dependencies": {
-    "cors-anywhere": "^0.4.4",
-    "electron-squirrel-startup": "^1.0.1",
-    "express": "^5.2.1",
-    "http-proxy-middleware": "^3.0.5",
-    "update-electron-app": "^3.1.1",
-    "which": "^6.0.0"
+  "build": {
+    "appId": "com.lampa.desktop",
+    "productName": "Lampa",
+    "artifactName": "lampa-${arch}-${version}.${ext}",
+    "linux": {
+      "target": "AppImage",
+      "icon": "icons/og.png",
+      "category": "Multimedia"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "icons/og.png",
+      "target": ["dmg"]
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "icons/og.ico",
+      "verifyUpdateCodeSignature": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "runAfterFinish": false,
+      "installerIcon": "icons/og.ico",
+      "uninstallerIcon": "icons/og.ico",
+      "license": "LICENSE"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Kolovatoff",
+      "repo": "lampa-desktop"
+    }
   }
 }

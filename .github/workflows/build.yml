@@ -1,86 +1,137 @@
-name: Build And Publish App
+name: Build and Release AppImage, macOS, Windows builds
 
-env:
-  ARTIFACT_DIR: out/com.lampa.desktop/make
+permissions:
+  contents: write
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
-  publish-win:
-    name: Publish x64 for Windows
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install AppImage dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
+      - name: Build AppImage
+        run: |
+          npm run build-linux
+#          chmod +x dist/lampa-x86_64.AppImage
+
+      - name: Extract version
+        id: get_version
+        run: |
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "version=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          awk "/^## \\[$VERSION\\]/ {flag=1; next} /^## \\[/ {flag=0} flag" CHANGELOG.md > changelog.txt
+          if [ ! -s changelog.txt ]; then
+            echo "No changelog entries found for version $VERSION"
+            echo "body=No changelog entries found for version $VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "body<<EOF" >> $GITHUB_OUTPUT
+            cat changelog.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: lampa-linux
+          path: dist/*.AppImage
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for macOS
+        run: |
+          npm run build-mac
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: lampa-macos
+          path: dist/*.dmg
+
+  build-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/checkout@v6
         with:
-          node-version: '20'
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Build x64 for Windows
-        run: npm run make-x64-win32
+      - name: Build for Windows
+        run: |
+          npm run build-win
 
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v6
         with:
-          name: windows-builds
-          path: |
-            ${{ env.ARTIFACT_DIR }}/squirrel.windows/x64/*.exe
-            ${{ env.ARTIFACT_DIR }}/zip/win32/x64/*.zip
+          name: lampa-windows
+          path: dist/*.exe
 
-  publish-linux:
-    name: Publish x64 for Linux
+  release:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build x64 for Linux
-        run: npm run make-x64-linux
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-builds
-          path: |
-            ${{ env.ARTIFACT_DIR }}/squirrel.linux/x64/*.deb
-            ${{ env.ARTIFACT_DIR }}/zip/linux/x64/*.zip
-
-  create-release:
-    needs: [publish-win, publish-linux]
-    runs-on: ubuntu-latest
+    needs: [build-linux, build-macos, build-windows]
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
+        uses: actions/download-artifact@v7
 
-      - name: Create Release
-        uses: ncipollo/release-action@v1
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref_name }}  # Используем имя тега (например, v1.0.0)
-          name: Release ${{ github.ref_name }}
-          body: |
-            Automated release of version ${{ github.ref_name }}.
-            
-            **Changes:**
-            - Automated build & release pipeline.
-          draft: false
-          prerelease: false
-          artifacts: "artifacts/**/*"  # Все собранные артефакты
+          tag_name: v${{ steps.get_version.outputs.version }}
+          body: ${{ steps.changelog.outputs.body }}
+          files: |
+            lampa-linux/*.AppImage
+            lampa-macos/*.dmg
+            lampa-windows/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

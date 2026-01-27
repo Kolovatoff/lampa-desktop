@@ -3,7 +3,6 @@ const path = require('node:path');
 const { existsSync } = require('fs');
 const { spawn } = require('child_process');
 const which = require('which');
-const { updateElectronApp, UpdateSourceType} = require('update-electron-app');
 
 if (require('electron-squirrel-startup')) {
   app.quit();
@@ -115,20 +114,6 @@ app.whenReady().then(async () => {
       createWindow();
     }
   });
-
-  try {
-    updateElectronApp({
-        updateSource: {
-            type: UpdateSourceType.ElectronPublicUpdateService,
-            repo: 'Kolovatoff/lampa-desktop'
-        },
-        updateInterval: '1 hour',
-        logger: require('electron-log')
-    });
-  } catch (error) {
-    console.error('Ошибка при настройке автообновлений:', error);
-  }
-
 });
 
 app.on('window-all-closed', () => {
