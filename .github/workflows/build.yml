@@ -22,10 +22,10 @@ jobs:
         run: npm install
 
       - name: Build x32 for Windows
-        run: npm run build-x3 Newton
+        run: npm run make-x32-win32
 
       - name: Build x64 for Windows
-        run: npm run build-x64-win32
+        run: npm run make-x64-win32
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -51,7 +51,7 @@ jobs:
         run: npm install
 
       - name: Build x64 for Linux
-        run: npm run build-x64-linux
+        run: npm run make-x64-linux
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
