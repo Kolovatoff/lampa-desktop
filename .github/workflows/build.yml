@@ -26,7 +26,8 @@ jobs:
 
       - name: Install Yarn 4
         run: |
-          npm install -g yarn@4
+          corepack enable
+          corepack prepare yarn@4 --activate
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -85,7 +86,8 @@ jobs:
 
       - name: Install Yarn 4
         run: |
-          npm install -g yarn@4
+          corepack enable
+          corepack prepare yarn@4 --activate
 
       - name: Install dependencies
         run: yarn install --immutable
@@ -116,7 +118,8 @@ jobs:
 
       - name: Install Yarn 4
         run: |
-          npm install -g yarn@4
+          corepack enable
+          corepack prepare yarn@4 --activate
 
       - name: Install dependencies
         run: yarn install --immutable
