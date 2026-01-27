@@ -4,10 +4,6 @@ const { existsSync } = require("fs");
 const { spawn } = require("child_process");
 const which = require("which");
 
-if (require("electron-squirrel-startup")) {
-  app.quit();
-}
-
 let proxyProcess;
 function startProxy() {
   proxyProcess = spawn("node", [path.join(__dirname, "proxy.js")]);
