@@ -152,8 +152,7 @@ jobs:
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          # Используем ref_name напрямую или собираем с v
-          tag_name: ${{ github.ref_name }}  # или v${{ needs.build-linux.outputs.version }}
+          tag_name: ${{ github.ref_name }}
           body: ${{ needs.build-linux.outputs.changelog_body }}
           files: |
             lampa-linux/*.AppImage

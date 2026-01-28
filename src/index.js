@@ -3,17 +3,76 @@ const path = require("node:path");
 const { existsSync } = require("fs");
 const { spawn } = require("child_process");
 const which = require("which");
+const http = require("http");
+const httpProxy = require("http-proxy");
 
-let proxyProcess;
-function startProxy() {
-  proxyProcess = spawn(process.execPath, [path.join(__dirname, "proxy.js")]);
-  proxyProcess.stdout.on("data", (data) => {
-    console.log(`Proxy: ${data}`);
-  });
-  proxyProcess.stderr.on("data", (data) => {
-    console.error(`Proxy Error: ${data}`);
-  });
-}
+// region Proxy
+// Создаём прокси-сервер (нацелен на VLC)
+const proxy = httpProxy.createProxyServer({
+  target: "http://localhost:3999", // Адрес VLC (по умолчанию)
+  changeOrigin: true,
+  secure: false,
+});
+
+proxy.on("error", (err, req, res) => {
+  // console.error("Proxy error (connection dropped):", err);
+
+  // Немедленно закрываем соединение
+  if (!res.finished) {
+    res.destroy();
+  } else {
+    res.socket?.destroy();
+  }
+});
+
+// HTTP-сервер с маршрутизацией
+const server = http.createServer((req, res) => {
+  // Проверяем, начинается ли путь с /vlc
+  if (req.url.startsWith("/vlc")) {
+    // console.log(`Received request: ${req.method} ${req.url}`);
+
+    // Для OPTIONS всегда возвращаем 200 с CORS-заголовками
+    if (req.method === "OPTIONS") {
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Content-Length": "0",
+      });
+      res.end();
+      return;
+    }
+
+    // Для остальных методов (GET, POST и т.д.) — проксируем в VLC
+    // Удаляем префикс /vlc для передачи в VLC
+    const targetPath = req.url.replace(/^\/vlc/, "") || "/";
+    req.url = targetPath;
+
+    // Добавляем CORS-заголовки для ответов VLC
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization",
+    );
+
+    // Проксируем запрос в VLC
+    proxy.web(req, res);
+  } else {
+    // Для всех других путей — ответ 404
+    res.writeHead(404, {
+      "Content-Type": "text/plain",
+    });
+    res.end("Not Found. Use /vlc path for VLC proxy.");
+  }
+});
+
+const proxyServer = server.listen(4000, "localhost", () => {
+  console.log(`Proxy server running on http://localhost:4000`);
+  console.log("Access VLC via http://localhost:3000/vlc");
+  console.log("Proxying to VLC at http://localhost:3999");
+});
+// endregion Proxy
 
 let mainWindow;
 
@@ -64,7 +123,9 @@ const createWindow = () => {
     return { action: "deny" };
   });
   // открываем консоль
-  // mainWindow.webContents.openDevTools();
+  if (process.argv.includes("--dev")) {
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // IPC обработчик для fs-existsSync
@@ -107,7 +168,6 @@ ipcMain.on("child-process-spawn", async (event, id, cmd, args, opts) => {
 });
 
 app.whenReady().then(async () => {
-  startProxy(); // Start proxy on app launch
   createWindow();
 
   app.on("activate", () => {
@@ -118,8 +178,7 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => {
-  // stop proxy on app exit
-  if (proxyProcess) proxyProcess.kill();
+  if (proxyServer) proxyServer.close();
   if (process.platform !== "darwin") {
     app.quit();
   }
@@ -139,11 +198,3 @@ if (!gotTheLock) {
     }
   });
 }
-
-// process.on('uncaughtException', (error) => {
-//   log.error('Необработанная ошибка:', error);
-// });
-//
-// process.on('unhandledRejection', (reason, promise) => {
-//   log.error('Необработанное отклонение промиса:', promise, 'причина:', reason);
-// });
