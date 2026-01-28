@@ -32,7 +32,6 @@
     }
   },
   "dependencies": {
-    "express": "5.2.1",
     "http-proxy": "1.18.1",
     "which": "6.0.0"
   },
