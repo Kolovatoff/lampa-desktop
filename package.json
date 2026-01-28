@@ -2,7 +2,7 @@
   "name": "lampa-desktop",
   "productName": "Lampa",
   "version": "1.0.0",
-  "description": "Десктоп приложение для Lampa",
+  "description": "Десктопное приложение-клиент для Lampa",
   "repository": {
     "type": "git",
     "url": "https://github.com/Kolovatoff/lampa-desktop"
