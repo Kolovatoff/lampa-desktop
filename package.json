@@ -55,7 +55,16 @@
     "productName": "Lampa",
     "artifactName": "lampa-${arch}-${version}.${ext}",
     "linux": {
-      "target": "AppImage",
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        "AppImage"
+      ],
       "icon": "icons/linux.png",
       "category": "Multimedia"
     },
