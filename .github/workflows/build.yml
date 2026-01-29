@@ -71,7 +71,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: lampa-linux
-          path: dist/*.AppImage
+          path: |
+            dist/*.AppImage
+            dist/*.deb
 
   build-macos:
     runs-on: macos-latest
@@ -155,6 +157,7 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body: ${{ needs.build-linux.outputs.changelog_body }}
           files: |
+            lampa-linux/*.deb
             lampa-linux/*.AppImage
             lampa-macos/*.dmg
             lampa-windows/*.exe
