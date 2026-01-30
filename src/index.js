@@ -69,7 +69,7 @@ const server = http.createServer((req, res) => {
 
 const proxyServer = server.listen(4000, "localhost", () => {
   console.log(`Proxy server running on http://localhost:4000`);
-  console.log("Access VLC via http://localhost:3000/vlc");
+  console.log("Access VLC via http://localhost:4000/vlc");
   console.log("Proxying to VLC at http://localhost:3999");
 });
 // endregion Proxy
