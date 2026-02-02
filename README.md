@@ -1,4 +1,5 @@
 # Lampa Desktop
+
 [![Github All Releases](https://img.shields.io/github/downloads/Kolovatoff/lampa-desktop/total.svg)]()  
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
@@ -18,6 +19,7 @@
 - [x] Не хранит собранную лампу локально, загружает её с lampa.mx
 
 ## Планы
+
 - [ ] Автоматическое обновление
 - [ ] Смена источника
 - [ ] Перенос конфигурации

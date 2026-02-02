@@ -55,6 +55,18 @@ contextBridge.exposeInMainWorld("require", (module) => {
 });
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  // submitUrl: (url) => ipcRenderer.send('submit-url', url),
-  // cancelUrl: () => ipcRenderer.send('cancel-url')
+  closeApp: () => ipcRenderer.send("close-app"),
+  toogleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
+  getStoreValue: async (key) => {
+    return await ipcRenderer.invoke("store-get", key);
+  },
+  setStoreValue: async (key, value) => {
+    return await ipcRenderer.invoke("store-set", key, value);
+  },
+  hasStoreKey: async (key) => {
+    return await ipcRenderer.invoke("store-has", key);
+  },
+  deleteStoreKey: async (key) => {
+    return await ipcRenderer.invoke("store-delete", key);
+  },
 });

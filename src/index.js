@@ -1,10 +1,52 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, shell } = require("electron");
 const path = require("node:path");
-const { existsSync } = require("fs");
+const { existsSync, readFileSync } = require("fs");
 const { spawn } = require("child_process");
 const which = require("which");
 const http = require("http");
+const Store = require("electron-store").default;
 const httpProxy = require("http-proxy");
+
+// Создаём экземпляр хранилища
+const store = new Store({
+  defaults: {
+    lampaUrl: "http://lampa.mx",
+    fullscreen: false,
+  },
+});
+
+store.onDidChange("lampaUrl", (newValue) => {
+  mainWindow.loadURL(newValue);
+  setupDomReadyHandler();
+});
+
+function setupDomReadyHandler() {
+  // Удаляем предыдущий обработчик (если есть)
+  mainWindow.webContents.removeAllListeners("dom-ready");
+
+  // Устанавливаем новый
+  mainWindow.webContents.once("dom-ready", () => {
+    console.log("DOM готов, запускаем плагин...");
+    injectPlugin();
+  });
+}
+
+ipcMain.handle("store-get", (event, key) => {
+  return store.get(key);
+});
+ipcMain.handle("store-set", (event, key, value) => {
+  store.set(key, value);
+});
+ipcMain.handle("store-has", (event, key) => {
+  return store.has(key); // возвращает true/false
+});
+ipcMain.handle("store-delete", (event, key) => {
+  if (store.has(key)) {
+    store.delete(key);
+    return true; // успешно удалено
+  }
+  return false; // ключа не было
+});
 
 // region Proxy
 // Создаём прокси-сервер (нацелен на VLC)
@@ -15,8 +57,6 @@ const proxy = httpProxy.createProxyServer({
 });
 
 proxy.on("error", (err, req, res) => {
-  // console.error("Proxy error (connection dropped):", err);
-
   // Немедленно закрываем соединение
   if (!res.finished) {
     res.destroy();
@@ -45,8 +85,7 @@ const server = http.createServer((req, res) => {
 
     // Для остальных методов (GET, POST и т.д.) — проксируем в VLC
     // Удаляем префикс /vlc для передачи в VLC
-    const targetPath = req.url.replace(/^\/vlc/, "") || "/";
-    req.url = targetPath;
+    req.url = req.url.replace(/^\/vlc/, "") || "/";
 
     // Добавляем CORS-заголовки для ответов VLC
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -69,10 +108,21 @@ const server = http.createServer((req, res) => {
 
 const proxyServer = server.listen(4000, "localhost", () => {
   console.log(`Proxy server running on http://localhost:4000`);
-  console.log("Access VLC via http://localhost:4000/vlc");
-  console.log("Proxying to VLC at http://localhost:3999");
+  console.log("Access VLC via /vlc to VLC at http://localhost:3999");
 });
 // endregion Proxy
+
+function injectPlugin() {
+  const pluginCode = readFileSync(path.join(__dirname, "plugin.js"), "utf-8");
+  mainWindow.webContents
+    .executeJavaScript(pluginCode)
+    .then(() => {
+      console.log("Плагин успешно внедрён");
+    })
+    .catch((err) => {
+      console.error("Ошибка внедрения плагина:", err);
+    });
+}
 
 let mainWindow;
 
@@ -93,10 +143,13 @@ const createWindow = () => {
     show: false,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     webSecurity: true,
+    fullscreen: Boolean(store.get("fullscreen")),
   });
 
   mainWindow.setMenu(null);
-  mainWindow.loadURL("http://lampa.mx");
+
+  const lampaUrl = store.get("lampaUrl");
+  mainWindow.loadURL(lampaUrl);
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
@@ -105,6 +158,8 @@ const createWindow = () => {
       mainWindow.focus();
     }
   });
+
+  setupDomReadyHandler();
 
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -119,13 +174,28 @@ const createWindow = () => {
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    require("electron").shell.openExternal(url);
+    shell.openExternal(url);
     return { action: "deny" };
   });
+
   // открываем консоль
   if (process.argv.includes("--dev")) {
     mainWindow.webContents.openDevTools();
   }
+
+  ipcMain.on("toggle-fullscreen", () => {
+    if (mainWindow.isFullScreen()) {
+      mainWindow.setFullScreen(false);
+    } else {
+      mainWindow.setFullScreen(true);
+    }
+  });
+
+  ipcMain.on("close-app", () => {
+    if (mainWindow) {
+      mainWindow.close();
+    }
+  });
 };
 
 // IPC обработчик для fs-existsSync

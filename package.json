@@ -32,6 +32,7 @@
     }
   },
   "dependencies": {
+    "electron-store": "^11.0.2",
     "http-proxy": "1.18.1",
     "which": "6.0.0"
   },
