@@ -165,6 +165,41 @@ const createWindow = () => {
     mainWindow = null;
   });
 
+  let isReloadingFromHandler = false;
+  // решение проблемы с нерабочим window.location.reload() в лампе
+  mainWindow.webContents.on(
+    "did-start-navigation",
+    (event, url, isInPlace, isMainFrame) => {
+      const currentUrl = mainWindow.webContents.getURL();
+
+      if (isMainFrame && url === currentUrl) {
+        console.log("Reload request detected:", {
+          url,
+          currentUrl,
+          initiator: event.initiator,
+          isInPlace,
+        });
+
+        // Проверяем, что это не наш собственный reload
+        if (!isReloadingFromHandler && event.initiator) {
+          console.log("Preventing default reload and using Electron reload");
+          event.preventDefault();
+
+          isReloadingFromHandler = true;
+          setTimeout(() => {
+            mainWindow.webContents.reload();
+            // Сбрасываем флаг после небольшой задержки
+            setTimeout(() => {
+              isReloadingFromHandler = false;
+            }, 100);
+          }, 10);
+        } else {
+          console.log("Skipping - this is our own reload call");
+        }
+      }
+    },
+  );
+
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
 
