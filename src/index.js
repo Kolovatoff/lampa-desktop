@@ -356,6 +356,116 @@ const createWindow = () => {
     }
   });
 
+  // Обрабатываем ошибки загрузки
+  mainWindow.webContents.on(
+    "did-fail-load",
+    (event, errorCode, errorDescription, validatedURL) => {
+      const errorHTML = `
+        <div style="
+          font-family: Arial, sans-serif;
+          text-align: center;
+          padding: 40px;
+          color: #333;
+          background-color: #f8f8f8;
+          border: 1px solid #ddd;
+          max-width: 600px;
+          margin: 0 auto;
+        ">
+          <h1>Ошибка загрузки страницы</h1>
+          <p><strong>Код ошибки:</strong> ${errorCode}</p>
+          <p><strong>Описание:</strong> ${errorDescription}</p>
+          <p><strong>Текущий URL:</strong> ${validatedURL}</p>
+
+          <div style="margin: 20px 0;">
+            <input
+              id="customUrlInput"
+              type="text"
+              placeholder="Введите новый URL (например, http://lampa.mx)"
+              style="
+                width: 80%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+              "
+            />
+          </div>
+
+          <div style="display: flex; gap: 10px; justify-content: center;">
+            <button
+              onclick="handleDefaultReload()"
+              style="
+                padding: 10px 20px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+              "
+            >
+              Загрузить LAMPA.MX
+            </button>
+            <button
+              onclick="handleCustomReload()"
+              style="
+                padding: 10px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+              "
+            >
+              Перейти
+            </button>
+          </div>
+        </div>
+
+        <script>
+          // Функция для загрузки lampa.mx по умолчанию
+          async function handleDefaultReload() {
+            try {
+              await window.electronAPI.setStoreValue('lampaUrl', 'http://lampa.mx');
+              window.electronAPI.loadUrl('http://lampa.mx');
+            } catch (err) {
+              console.error('Ошибка:', err);
+              alert('Не удалось загрузить lampa.mx: ' + err.message);
+            }
+          }
+
+          // Функция для загрузки пользовательского URL
+          async function handleCustomReload() {
+            const input = document.getElementById('customUrlInput');
+            const url = input.value.trim();
+
+            // Проверка на пустоту
+            if (!url) {
+              alert('Пожалуйста, введите URL!');
+              return;
+            }
+
+            try {
+              // Сохраняем в хранилище
+              await window.electronAPI.setStoreValue('lampaUrl', url);
+
+              // Перезагружаем страницу
+              window.electronAPI.loadUrl(url);
+            } catch (err) {
+              console.error('Ошибка:', err);
+              alert('Не удалось перейти по URL: ' + err.message);
+            }
+          }
+        </script>
+      `;
+
+      // Вставляем HTML в тело страницы
+      mainWindow.webContents.executeJavaScript(`
+        document.write(${JSON.stringify(errorHTML)});
+        document.close();
+      `);
+    },
+  );
+
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: "deny" };
@@ -372,6 +482,12 @@ const createWindow = () => {
     } else {
       mainWindow.setFullScreen(true);
     }
+  });
+
+  ipcMain.on("reload-page", (event, url) => {
+    mainWindow.loadURL(url).catch((err) => {
+      console.error("Ошибка загрузки URL:", err);
+    });
   });
 
   ipcMain.on("close-app", () => {

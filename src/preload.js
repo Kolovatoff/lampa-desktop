@@ -57,6 +57,9 @@ contextBridge.exposeInMainWorld("require", (module) => {
 contextBridge.exposeInMainWorld("electronAPI", {
   closeApp: () => ipcRenderer.send("close-app"),
   toogleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
+  loadUrl: (url) => {
+    ipcRenderer.send("load-url", url);
+  },
   getStoreValue: async (key) => {
     return await ipcRenderer.invoke("store-get", key);
   },
