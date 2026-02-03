@@ -69,4 +69,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteStoreKey: async (key) => {
     return await ipcRenderer.invoke("store-delete", key);
   },
+  exportSettings: async () => {
+    return await ipcRenderer.invoke("export-settings");
+  },
+  importSettings: async () => {
+    return await ipcRenderer.invoke("import-settings");
+  },
 });

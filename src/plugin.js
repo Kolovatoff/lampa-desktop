@@ -215,6 +215,51 @@
         );
       },
     });
+
+    Lampa.SettingsApi.addParam({
+      component: "app_settings",
+      param: {
+        name: "app_settings_ie",
+        type: "button",
+      },
+      field: {
+        name: "Экспорт/Импорт настроек",
+        description: "Экспорт/Импорт настроек",
+      },
+      onChange: () => {
+        Lampa.Select.show({
+          title: "Экспорт/Импорт настроек",
+          items: [
+            {
+              title: "Экспорт",
+              subtitle: "Сохранить настройки в файл",
+              export: true,
+            },
+            {
+              title: "Импорт",
+              subtitle: "Импортировать настройки из файла",
+            },
+          ],
+          onSelect: async (a) => {
+            Lampa.Noty.show("Ожидайте...");
+            try {
+              let result;
+              if (a.export) {
+                result = await window.electronAPI.exportSettings();
+              } else {
+                result = await window.electronAPI.importSettings();
+              }
+              Lampa.Noty.show(result.message);
+            } catch (error) {
+              Lampa.Noty.show(error);
+            }
+          },
+          onBack: () => {
+            Lampa.Controller.toggle("settings_component");
+          },
+        });
+      },
+    });
   }
 
   function init() {
@@ -222,11 +267,14 @@
     addAppSettings(); // Настройки приложения внутри лампы
   }
 
-  if (window.appready) {
-    init();
-  } else {
-    Lampa.Listener.follow("app", function (e) {
-      if (e.type === "ready") init();
-    });
+  if (!window.plugin_app_ready) {
+    window.plugin_app_ready = true;
+    if (window.appready && !window.plugin_app_ready) {
+      init();
+    } else {
+      Lampa.Listener.follow("app", function (e) {
+        if (e.type === "ready") init();
+      });
+    }
   }
 })();

@@ -1,11 +1,13 @@
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, dialog } = require("electron");
 const path = require("node:path");
-const { existsSync, readFileSync } = require("fs");
+const { existsSync, readFileSync, writeFileSync } = require("fs");
 const { spawn } = require("child_process");
 const which = require("which");
 const http = require("http");
 const Store = require("electron-store").default;
 const httpProxy = require("http-proxy");
+
+let mainWindow;
 
 // Создаём экземпляр хранилища
 const store = new Store({
@@ -14,22 +16,9 @@ const store = new Store({
     fullscreen: false,
   },
 });
-
 store.onDidChange("lampaUrl", (newValue) => {
   mainWindow.loadURL(newValue);
-  setupDomReadyHandler();
 });
-
-function setupDomReadyHandler() {
-  // Удаляем предыдущий обработчик (если есть)
-  mainWindow.webContents.removeAllListeners("dom-ready");
-
-  // Устанавливаем новый
-  mainWindow.webContents.once("dom-ready", () => {
-    console.log("DOM готов, запускаем плагин...");
-    injectPlugin();
-  });
-}
 
 ipcMain.handle("store-get", (event, key) => {
   return store.get(key);
@@ -112,6 +101,32 @@ const proxyServer = server.listen(4000, "localhost", () => {
 });
 // endregion Proxy
 
+function setupPluginHandler() {
+  mainWindow.webContents.on("did-finish-load", async () => {
+    try {
+      await waitForLampaReady();
+      injectPlugin();
+    } catch (err) {
+      console.error("Ошибка при перезагрузке:", err);
+    }
+  });
+}
+async function waitForLampaReady() {
+  return new Promise((resolve) => {
+    const check = async () => {
+      const isReady = await mainWindow.webContents
+        .executeJavaScript("window.Lampa !== undefined", true)
+        .catch(() => false);
+
+      if (isReady) {
+        resolve();
+      } else {
+        setTimeout(check, 100);
+      }
+    };
+    check();
+  });
+}
 function injectPlugin() {
   const pluginCode = readFileSync(path.join(__dirname, "plugin.js"), "utf-8");
   mainWindow.webContents
@@ -124,7 +139,140 @@ function injectPlugin() {
     });
 }
 
-let mainWindow;
+ipcMain.handle("export-settings", async () => {
+  try {
+    const { canceled, filePath } = await dialog.showSaveDialog(mainWindow, {
+      title: "Экспортировать настройки",
+      defaultPath: "lampa-desktop-settings.json",
+      filters: [{ name: "JSON файлы", extensions: ["json"] }],
+    });
+
+    if (canceled || !filePath) return;
+
+    const localStorageData = await mainWindow.webContents.executeJavaScript(`
+      Object.assign({}, localStorage)
+    `);
+
+    const settings = {
+      appVersion: app.getVersion(),
+      dateCreated: new Date().toISOString(),
+      app: store.get(),
+      lampa: localStorageData,
+    };
+
+    // Сохраняем в файл
+    writeFileSync(filePath, JSON.stringify(settings, null, 2));
+
+    console.log("Настройки успешно экспортированы");
+    return { success: true, message: "Настройки успешно экспортированы" };
+  } catch (err) {
+    console.log(`Не удалось экспортировать настройки: ${err.message}`);
+    return {
+      success: false,
+      message: `Не удалось экспортировать настройки: ${err.message}`,
+    };
+  }
+});
+
+ipcMain.handle("import-settings", async () => {
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: "Импортировать настройки",
+      filters: [{ name: "JSON файлы", extensions: ["json"] }],
+      properties: ["openFile"],
+    });
+
+    if (canceled || !filePaths.length) return;
+
+    if (filePaths.length > 1) {
+      // Обработка случая, если почему-то выбрано несколько файлов
+      console.warn("Выбрано несколько файлов, будет использован только первый");
+    }
+
+    const data = readFileSync(filePaths[0], "utf-8");
+    const settings = JSON.parse(data);
+
+    if (typeof settings !== "object" || settings === null) {
+      return {
+        success: false,
+        message: "Неверный формат файла",
+      };
+    }
+
+    const currentUrlBefore = store.get("lampaUrl");
+
+    if (settings.app) {
+      for (const [key, value] of Object.entries(settings.app)) {
+        if (store.has(key)) {
+          store.set(key, value);
+        }
+      }
+    }
+
+    if (settings.lampa) {
+      await mainWindow.webContents.executeJavaScript(`
+        localStorage.clear();
+        Lampa.Cache.clearAll()
+
+        Object.entries(${JSON.stringify(settings.lampa)}).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+        });
+      `);
+    }
+
+    const newUrl = store.get("lampaUrl");
+    const currentUrl = mainWindow.webContents.getURL();
+    let shouldReload = false;
+
+    if (newUrl && newUrl !== currentUrlBefore) {
+      await mainWindow.webContents.session.clearCache();
+      await mainWindow.loadURL(newUrl);
+      shouldReload = true;
+    } else if (currentUrl.includes(newUrl || currentUrlBefore)) {
+      mainWindow.webContents.reloadIgnoringCache();
+      shouldReload = true;
+    }
+
+    if (shouldReload) {
+      console.log("Ожидаем завершения загрузки страницы...");
+
+      await new Promise((resolve) => {
+        const checkLoad = () => {
+          const state = mainWindow.webContents.getURL();
+
+          if (state && !state.includes("about:blank")) {
+            console.log("Страница считается загруженной:", state);
+            resolve();
+          } else {
+            setTimeout(checkLoad, 100);
+          }
+        };
+
+        checkLoad();
+
+        mainWindow.webContents.once("did-finish-load", () => {
+          console.log("Событие did-finish-load сработало");
+          resolve();
+        });
+        setTimeout(resolve, 10000);
+      });
+    } else {
+      injectPlugin();
+    }
+
+    console.log("Settings imported successfully");
+    return {
+      success: true,
+      message: "Настройки успешно импортированы, производим перезапуск...",
+    };
+  } catch (err) {
+    console.log(`Error importing settings: ${err.message}`);
+    return {
+      success: false,
+      message: `Не удалось импортировать настройки: ${err.message}`,
+    };
+  }
+});
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -158,14 +306,14 @@ const createWindow = () => {
       mainWindow.focus();
     }
   });
-
-  setupDomReadyHandler();
+  setupPluginHandler();
 
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
 
   let isReloadingFromHandler = false;
+
   // решение проблемы с нерабочим window.location.reload() в лампе
   mainWindow.webContents.on(
     "did-start-navigation",
