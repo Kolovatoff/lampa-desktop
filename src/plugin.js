@@ -269,7 +269,7 @@
 
   if (!window.plugin_app_ready) {
     window.plugin_app_ready = true;
-    if (window.appready && !window.plugin_app_ready) {
+    if (window.appready) {
       init();
     } else {
       Lampa.Listener.follow("app", function (e) {
