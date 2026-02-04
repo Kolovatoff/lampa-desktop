@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain, shell, dialog } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  shell,
+  dialog,
+  screen,
+} = require("electron");
 const path = require("node:path");
 const { existsSync, readFileSync, writeFileSync } = require("fs");
 const { spawn } = require("child_process");
@@ -14,6 +21,7 @@ const store = new Store({
   defaults: {
     lampaUrl: "http://lampa.mx",
     fullscreen: false,
+    windowState: {},
   },
 });
 store.onDidChange("lampaUrl", (newValue) => {
@@ -137,6 +145,26 @@ function injectPlugin() {
     .catch((err) => {
       console.error("Ошибка внедрения плагина:", err);
     });
+}
+function saveWindowState(state) {
+  store.set("windowState", state);
+}
+
+function loadWindowState() {
+  const state = store.get("windowState");
+
+  if (
+    state &&
+    typeof state === "object" &&
+    "x" in state &&
+    "y" in state &&
+    "width" in state &&
+    "height" in state
+  ) {
+    return state;
+  }
+
+  return null;
 }
 
 ipcMain.handle("export-settings", async () => {
@@ -275,9 +303,10 @@ ipcMain.handle("import-settings", async () => {
 });
 
 const createWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 1200,
-    height: 800,
+  const savedState = loadWindowState();
+  const displays = screen.getAllDisplays();
+
+  let windowOptions = {
     minWidth: 800,
     minHeight: 600,
     webPreferences: {
@@ -292,22 +321,104 @@ const createWindow = () => {
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     webSecurity: true,
     fullscreen: Boolean(store.get("fullscreen")),
-  });
+  };
+
+  if (savedState && savedState.width && savedState.height) {
+    const targetDisplay = displays.find((d) => d.id === savedState.displayId);
+
+    if (targetDisplay) {
+      // Проверяем, что окно не выходит за пределы дисплея
+      const displayBounds = targetDisplay.bounds;
+      const maxX = displayBounds.x + displayBounds.width - savedState.width;
+      const maxY = displayBounds.y + displayBounds.height - savedState.height;
+
+      windowOptions.x = Math.max(displayBounds.x, Math.min(savedState.x, maxX));
+      windowOptions.y = Math.max(displayBounds.y, Math.min(savedState.y, maxY));
+      windowOptions.width = savedState.width;
+      windowOptions.height = savedState.height;
+    } else {
+      // Если дисплей не найден, используем размеры, но на основном дисплее
+      windowOptions.width = savedState.width;
+      windowOptions.height = savedState.height;
+    }
+  } else {
+    // Значения по умолчанию
+    windowOptions.width = 1200;
+    windowOptions.height = 800;
+  }
+
+  mainWindow = new BrowserWindow(windowOptions);
 
   mainWindow.setMenu(null);
 
-  const lampaUrl = store.get("lampaUrl");
-  mainWindow.loadURL(lampaUrl);
-
   mainWindow.once("ready-to-show", () => {
+    if (savedState && !windowOptions.fullscreen) {
+      mainWindow.setBounds({
+        x: windowOptions.x,
+        y: windowOptions.y,
+        width: windowOptions.width,
+        height: windowOptions.height,
+      });
+    }
+
     mainWindow.show();
 
     if (process.platform === "darwin") {
       mainWindow.focus();
     }
   });
+
+  const lampaUrl = store.get("lampaUrl");
+  mainWindow.loadURL(lampaUrl);
+
   setupPluginHandler();
 
+  const saveState = () => {
+    if (
+      !mainWindow.isDestroyed() &&
+      !mainWindow.isMaximized() &&
+      !mainWindow.isMinimized() &&
+      !mainWindow.isFullScreen()
+    ) {
+      const bounds = mainWindow.getBounds();
+      const display = screen.getDisplayMatching(bounds);
+
+      const windowState = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        displayId: display.id,
+        maximized: mainWindow.isMaximized(),
+      };
+
+      saveWindowState(windowState);
+    }
+  };
+
+  // Сохраняем состояние при перемещении и изменении размера
+  mainWindow.on("move", saveState);
+  mainWindow.on("resize", saveState);
+
+  mainWindow.on("close", () => {
+    if (!mainWindow.isDestroyed()) {
+      const bounds = mainWindow.getNormalBounds
+        ? mainWindow.getNormalBounds()
+        : mainWindow.getBounds();
+      const display = screen.getDisplayMatching(bounds);
+
+      const windowState = {
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        displayId: display.id,
+        maximized: mainWindow.isMaximized(),
+      };
+
+      saveWindowState(windowState);
+    }
+  });
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
