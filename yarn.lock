@@ -1782,7 +1782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron-store@npm:^11.0.2":
+"electron-store@npm:11.0.2":
   version: 11.0.2
   resolution: "electron-store@npm:11.0.2"
   dependencies:
@@ -3106,7 +3106,7 @@ __metadata:
     commit-and-tag-version: "npm:12.6.1"
     electron: "npm:40.0.0"
     electron-builder: "npm:26.4.0"
-    electron-store: "npm:^11.0.2"
+    electron-store: "npm:11.0.2"
     electron-updater: "npm:6.7.3"
     eslint: "npm:9.39.2"
     eslint-config-prettier: "npm:10.1.8"
