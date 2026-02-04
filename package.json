@@ -1,7 +1,7 @@
 {
   "name": "lampa-desktop",
   "productName": "Lampa",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Десктопное приложение-клиент для Lampa",
   "repository": {
     "type": "git",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "electron-store": "^11.0.2",
+    "electron-updater": "6.7.3",
     "http-proxy": "1.18.1",
     "which": "6.0.0"
   },

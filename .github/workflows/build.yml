@@ -74,6 +74,7 @@ jobs:
           path: |
             dist/*.AppImage
             dist/*.deb
+            dist/latest-linux.yml
 
   build-macos:
     runs-on: macos-latest
@@ -105,7 +106,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: lampa-macos
-          path: dist/*.dmg
+          path: |
+            dist/*.dmg
+            dist/*.blockmap
+            dist/latest-mac.yml
 
   build-windows:
     runs-on: windows-latest
@@ -137,7 +141,10 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: lampa-windows
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.blockmap
+            dist/latest.yml
 
   release:
     runs-on: ubuntu-latest
@@ -157,9 +164,14 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body: ${{ needs.build-linux.outputs.changelog_body }}
           files: |
-            lampa-linux/*.deb
             lampa-linux/*.AppImage
+            lampa-linux/*.deb
+            lampa-linux/latest-linux.yml
             lampa-macos/*.dmg
+            lampa-macos/*.blockmap
+            lampa-macos/latest-mac.yml
             lampa-windows/*.exe
+            lampa-windows/*.blockmap
+            lampa-windows/latest.yml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

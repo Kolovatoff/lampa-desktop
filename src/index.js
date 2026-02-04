@@ -13,6 +13,11 @@ const which = require("which");
 const http = require("http");
 const Store = require("electron-store").default;
 const httpProxy = require("http-proxy");
+const { autoUpdater } = require("electron-updater");
+
+// Настройка автообновлений
+autoUpdater.logger = console;
+autoUpdater.autoDownload = true;
 
 let mainWindow;
 
@@ -108,6 +113,44 @@ const proxyServer = server.listen(4000, "localhost", () => {
   console.log("Access VLC via /vlc to VLC at http://localhost:3999");
 });
 // endregion Proxy
+
+// region Автообновления
+autoUpdater.on("checking-for-update", () => {
+  console.log("Checking for updates...");
+});
+
+autoUpdater.on("update-available", (info) => {
+  console.log("Update available:", info);
+});
+
+autoUpdater.on("update-not-available", (info) => {
+  console.log("No updates available:", info);
+});
+
+autoUpdater.on("error", (err) => {
+  console.error("Auto-update error:", err);
+});
+
+autoUpdater.on("download-progress", (progressObj) => {
+  console.log(`Downloading: ${progressObj.percent}%`);
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  console.log("Update downloaded:", info);
+  dialog
+    .showMessageBox({
+      type: "info",
+      title: "Обновление готово",
+      message: "Новое обновление загружено. Перезапустить приложение?",
+      buttons: ["Да", "Позже"],
+    })
+    .then((result) => {
+      if (result.response === 0) {
+        autoUpdater.quitAndInstall();
+      }
+    });
+});
+// endregion Автообновления
 
 function setupPluginHandler() {
   mainWindow.webContents.on("did-finish-load", async () => {
@@ -655,6 +698,10 @@ app.whenReady().then(async () => {
       createWindow();
     }
   });
+
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(console.error);
+  }, 5000);
 });
 
 app.on("window-all-closed", () => {
