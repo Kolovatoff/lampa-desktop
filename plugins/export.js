@@ -38,7 +38,7 @@
     const settings = {
       appVersion: "0.0.0",
       dateCreated: new Date().toISOString(),
-      app: [],
+      app: {},
       lampa: storageData,
     };
 
