@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Kolovatoff/lampa-desktop"
   },
-  "main": "src/index.js",
+  "main": "src/main.js",
   "engines": {
     "node": ">=24.0.0 <25.0.0",
     "npm": "please-use-yarn",

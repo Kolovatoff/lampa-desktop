@@ -26,6 +26,7 @@ const store = new Store({
   defaults: {
     lampaUrl: "http://lampa.mx",
     fullscreen: false,
+    autoUpdate: true,
     windowState: {},
   },
 });
@@ -704,7 +705,12 @@ app.whenReady().then(async () => {
   });
 
   setTimeout(() => {
-    autoUpdater.checkForUpdates().catch(console.error);
+    if (store.get("autoUpdate")) {
+      autoUpdater.checkForUpdates().catch(console.error);
+    }
+    // autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    //   console.error("Ошибка при автоматической проверке обновлений:", err);
+    // });
   }, 5000);
 });
 

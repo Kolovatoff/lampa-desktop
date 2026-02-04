@@ -43,6 +43,10 @@
         ru: "Запускать в полноэкранном режиме",
         en: "Launch in fullscreen mode",
       },
+      app_settings_autoupdate_field_name: {
+        ru: "Автоматическое обновление",
+        en: "Automatic update",
+      },
       app_settings_lampa_url_placeholder: {
         ru: "Введите url лампы, начиная с http...",
         en: "Enter lamp URL starting with http...",
@@ -66,6 +70,34 @@
       app_settings_about_field_description: {
         ru: "Узнать версию и др. информацию о приложении",
         en: "Check version and other app information",
+      },
+      app_settings_ie_field_name: {
+        ru: "Экспорт/Импорт настроек",
+        en: "Export/Import settings",
+      },
+      app_settings_ie_field_description: {
+        ru: "Резервная копия данных или перенос из другого приложения",
+        en: "Backup data or transfer from another application",
+      },
+      app_settings_ie_btn_export_title: {
+        ru: "Экспорт",
+        en: "Export",
+      },
+      app_settings_ie_btn_export_subtitle: {
+        ru: "Сохранить настройки в файл",
+        en: "Save settings to file",
+      },
+      app_settings_ie_btn_import_title: {
+        ru: "Импорт",
+        en: "Import",
+      },
+      app_settings_ie_btn_import_subtitle: {
+        ru: "Импортировать настройки из файла",
+        en: "Import settings from file",
+      },
+      app_settings_noty_waiting: {
+        ru: "Ожидайте...",
+        en: "Please wait...",
       },
     });
 
@@ -101,6 +133,33 @@
       })
       .catch((error) => {
         console.error("APP", "Не удалось получить значение fullscreen:", error);
+      });
+
+    // Полноэкранный режим
+    window.electronAPI
+      .getStoreValue("autoUpdate")
+      .then((autoUpdate) => {
+        localStorage.setItem("app_settings_autoupdate", autoUpdate);
+        Lampa.SettingsApi.addParam({
+          component: "app_settings",
+          param: {
+            name: "app_settings_autoupdate",
+            type: "trigger",
+            default: autoUpdate,
+          },
+          field: {
+            name: Lampa.Lang.translate("app_settings_autoupdate_field_name"),
+          },
+          onChange: async function (value) {
+            await window.electronAPI.setStoreValue(
+              "autoUpdate",
+              value === "true",
+            );
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("APP", "Не удалось получить значение autoUpdate:", error);
       });
 
     // URL Лампы
@@ -231,25 +290,31 @@
         type: "button",
       },
       field: {
-        name: "Экспорт/Импорт настроек",
-        description: "Экспорт/Импорт настроек",
+        name: Lampa.Lang.translate("app_settings_ie_field_name"),
+        description: Lampa.Lang.translate(
+          "app_settings_about_field_description",
+        ),
       },
       onChange: () => {
         Lampa.Select.show({
-          title: "Экспорт/Импорт настроек",
+          title: Lampa.Lang.translate("app_settings_ie_field_name"),
           items: [
             {
-              title: "Экспорт",
-              subtitle: "Сохранить настройки в файл",
+              title: Lampa.Lang.translate("app_settings_ie_btn_export_title"),
+              subtitle: Lampa.Lang.translate(
+                "app_settings_ie_btn_export_subtitle",
+              ),
               export: true,
             },
             {
-              title: "Импорт",
-              subtitle: "Импортировать настройки из файла",
+              title: Lampa.Lang.translate("app_settings_ie_btn_import_title"),
+              subtitle: Lampa.Lang.translate(
+                "app_settings_ie_btn_import_subtitle",
+              ),
             },
           ],
           onSelect: async (a) => {
-            Lampa.Noty.show("Ожидайте...");
+            Lampa.Noty.show(Lampa.Lang.translate("app_settings_noty_waiting"));
             try {
               let result;
               if (a.export) {
