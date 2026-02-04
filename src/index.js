@@ -345,6 +345,10 @@ ipcMain.handle("import-settings", async () => {
   }
 });
 
+ipcMain.handle("get-app-version", () => {
+  return app.getVersion();
+});
+
 const createWindow = () => {
   const savedState = loadWindowState();
   const displays = screen.getAllDisplays();

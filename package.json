@@ -32,7 +32,7 @@
     }
   },
   "dependencies": {
-    "electron-store": "^11.0.2",
+    "electron-store": "11.0.2",
     "electron-updater": "6.7.3",
     "http-proxy": "1.18.1",
     "which": "6.0.0"

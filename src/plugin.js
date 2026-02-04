@@ -166,15 +166,18 @@
         network.silent(
           "https://api.github.com/repos/Kolovatoff/lampa-desktop/releases/latest",
           (data) => {
-            const version = data.tag_name.replace("v", "");
+            window.electronAPI
+              .getAppVersion()
+              .then((current_version) => {
+                const latest_version = data.tag_name.replace("v", "");
 
-            Lampa.Template.add(
-              "about_modal",
-              `<div class="app-modal-about">
+                Lampa.Template.add(
+                  "about_modal",
+                  `<div class="app-modal-about">
                 Не официальное приложение-клиент для Lampa.
                 <ul>
-                    <li>Версия приложения: 1.0.0</li>
-                    <li>Последняя версия: {version}</li>
+                    <li>Версия приложения: {current_version}</li>
+                    <li>Последняя версия: {latest_version}</li>
                     <li>Версия Lampa: {lampa_version}</li>
                 </ul>
                 <div class="simple-button selector github">
@@ -184,28 +187,33 @@
                     <span>GitHub</span>
                 </div>
               </div>`,
-            );
+                );
 
-            let about_html = Lampa.Template.get("about_modal", {
-              version: version,
-              lampa_version: Lampa.Platform.version("app"),
-            });
-            about_html.find(".github").on("hover:enter", function () {
-              window.open(
-                "https://github.com/Kolovatoff/lampa-desktop",
-                "_blank",
-              );
-            });
+                let about_html = Lampa.Template.get("about_modal", {
+                  current_version: current_version,
+                  latest_version: latest_version,
+                  lampa_version: Lampa.Platform.version("app"),
+                });
+                about_html.find(".github").on("hover:enter", function () {
+                  window.open(
+                    "https://github.com/Kolovatoff/lampa-desktop",
+                    "_blank",
+                  );
+                });
 
-            Lampa.Modal.open({
-              title: Lampa.Lang.translate("app_settings_about_field_name"),
-              html: about_html,
-              size: "small",
-              onBack: function () {
-                Lampa.Modal.close();
-                Lampa.Controller.toggle("settings_component");
-              },
-            });
+                Lampa.Modal.open({
+                  title: Lampa.Lang.translate("app_settings_about_field_name"),
+                  html: about_html,
+                  size: "small",
+                  onBack: function () {
+                    Lampa.Modal.close();
+                    Lampa.Controller.toggle("settings_component");
+                  },
+                });
+              })
+              .catch((error) => {
+                console.error("APP", "Не удалось получить appVersion", error);
+              });
           },
           null,
           null,

@@ -60,6 +60,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   loadUrl: (url) => {
     ipcRenderer.send("load-url", url);
   },
+  getAppVersion: async () => {
+    return await ipcRenderer.invoke("get-app-version");
+  },
   getStoreValue: async (key) => {
     return await ipcRenderer.invoke("store-get", key);
   },
