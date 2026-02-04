@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.0.0...v1.1.0) (2026-02-04)
+
+### ✨ Новые возможности
+
+- автообновления ([422eea7](https://github.com/Kolovatoff/lampa-desktop/commit/422eea7dfc3b9d4369a8b740448b05ddd44681e9))
+- возможность экспорта и импорта настроек ([947fe7f](https://github.com/Kolovatoff/lampa-desktop/commit/947fe7f58ef9ec018b1aa9e88590bc79216770bd))
+- добавлен плагин для экспорта настроек из другого приложения лампы на electron или nw ([5846792](https://github.com/Kolovatoff/lampa-desktop/commit/5846792958aeea11fd1f475d30660305e523b604))
+- добавлены настройки приложения ([723fc3b](https://github.com/Kolovatoff/lampa-desktop/commit/723fc3b08571f10a1bf5ef9bf83c95c519148b31))
+- обработка ошибочного ввода URL лампы ([0cc8a6c](https://github.com/Kolovatoff/lampa-desktop/commit/0cc8a6c46770a8ce08164dd1cd447f4e6cfe9097))
+- сохранение позиции окна и дисплея ([62e54ec](https://github.com/Kolovatoff/lampa-desktop/commit/62e54ec3b6a784c83b4558043a1068f804eab02e))
+
+### 🐛 Исправления
+
+- исправлено получение версии в "О приложении" ([d32c4d4](https://github.com/Kolovatoff/lampa-desktop/commit/d32c4d4b624c7a191bc2d0307f6f5ea77a9cf264))
+- решение проблемы с нерабочим window.location.reload ([6433b03](https://github.com/Kolovatoff/lampa-desktop/commit/6433b03d5507c46232750b725280ca9bc51941b3))
+- **plugins:** фикс шаблона настроек ([dea8951](https://github.com/Kolovatoff/lampa-desktop/commit/dea895118399727678c06a4a927b0d8dbe47b5b2))
+
+### 📚 Документация
+
+- добавлена документация по переносу настроек ([c09e312](https://github.com/Kolovatoff/lampa-desktop/commit/c09e312af7416e8442e7404b1628c11018bb4087))
+- изменение ссылок в содержании ([468d02e](https://github.com/Kolovatoff/lampa-desktop/commit/468d02ed8558e199a01889958460587d3a1fba2b))
+
+### 📦 Сборка
+
+- добавлено в сборку deb для linux ([ccf8776](https://github.com/Kolovatoff/lampa-desktop/commit/ccf8776697a4ae2f14f8f29d2a084fcece2efd63))
+
+### 🔧 CI/CD
+
+- добавлено deb для linux ([fe581f4](https://github.com/Kolovatoff/lampa-desktop/commit/fe581f42980e5374fedadd0abff7178ee59621b9))
+
 ## 1.0.0 (2026-01-27)
 
 ### 🐛 Исправления
