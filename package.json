@@ -67,12 +67,12 @@
         },
         "AppImage"
       ],
-      "icon": "icons/linux.png",
+      "icon": "assets/linux.icns",
       "category": "Multimedia"
     },
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "icons/mac.png",
+      "icon": "assets/mac.png",
       "target": [
         "dmg"
       ]
@@ -81,7 +81,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "icons/win.ico",
+      "icon": "assets/win.ico",
       "verifyUpdateCodeSignature": true
     },
     "nsis": {
@@ -90,8 +90,8 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "runAfterFinish": false,
-      "installerIcon": "icons/win.ico",
-      "uninstallerIcon": "icons/win.ico",
+      "installerIcon": "assets/win.ico",
+      "uninstallerIcon": "assets/win.ico",
       "license": "LICENSE"
     },
     "publish": {
