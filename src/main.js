@@ -354,6 +354,22 @@ const createWindow = () => {
   const savedState = loadWindowState();
   const displays = screen.getAllDisplays();
 
+  let iconPath;
+  switch (process.platform) {
+    case "win32":
+      // iconPath = path.join(__dirname, "assets", "win.ico");
+      iconPath = path.join(__dirname, "assets", "fallback.png");
+      break;
+    case "darwin":
+      iconPath = path.join(__dirname, "assets", "mac.icns");
+      break;
+    case "linux":
+      iconPath = path.join(__dirname, "assets", "linux.icns");
+      break;
+    default:
+      iconPath = path.join(__dirname, "assets", "fallback.png");
+  }
+
   let windowOptions = {
     minWidth: 800,
     minHeight: 600,
@@ -364,7 +380,7 @@ const createWindow = () => {
       enableRemoteModule: false,
       sandbox: false,
     },
-    icon: path.join(__dirname, "img", "og.png"),
+    icon: iconPath,
     show: false,
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     webSecurity: true,
