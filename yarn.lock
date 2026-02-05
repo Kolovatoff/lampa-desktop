@@ -1808,16 +1808,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:40.0.0":
-  version: 40.0.0
-  resolution: "electron@npm:40.0.0"
+"electron@npm:40.1.0":
+  version: 40.1.0
+  resolution: "electron@npm:40.1.0"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^24.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/acd42835a64f007817ba43969d7bdd1281f109f26fbf4c6639208a8262b80ee1b89dfb844a30de694baa152ff4afc1be1d1e09b0a69629a57be03f9bbf3f9416
+  checksum: 10c0/a46f739bd84be958f9dc47b4bfa87ac1d61c7bc26134a9e298289d4344b9fe316ff519a657ffc2dfec094ae8c759d38ea4a3a72977adb2cc46e79e1d0057d30a
   languageName: node
   linkType: hard
 
@@ -2539,10 +2539,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:17.2.0":
-  version: 17.2.0
-  resolution: "globals@npm:17.2.0"
-  checksum: 10c0/fd25a98b08c1d31082337cbbb5ff1b90b9980e1db69a8621fb942bdb2cdca8aa54d61466742e8bf4910578ea5fa903b8bf83bffd1b2d45551cc614830dba910b
+"globals@npm:17.3.0":
+  version: 17.3.0
+  resolution: "globals@npm:17.3.0"
+  checksum: 10c0/7f21443ecaa60c6e9ff56d9fb6f10a9b5f9514e7f22e5392f715472bb220ce31c865ebf414a32695150e733fb3e1013e6322dbce70fddd1e066f372b8d55a4b8
   languageName: node
   linkType: hard
 
@@ -3104,15 +3104,15 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:9.39.2"
     commit-and-tag-version: "npm:12.6.1"
-    electron: "npm:40.0.0"
+    electron: "npm:40.1.0"
     electron-builder: "npm:26.4.0"
     electron-store: "npm:11.0.2"
     electron-updater: "npm:6.7.3"
     eslint: "npm:9.39.2"
     eslint-config-prettier: "npm:10.1.8"
-    globals: "npm:17.2.0"
+    globals: "npm:17.3.0"
     http-proxy: "npm:1.18.1"
-    prettier: "npm:3.7.4"
+    prettier: "npm:3.8.1"
     which: "npm:6.0.0"
   languageName: unknown
   linkType: soft
@@ -4048,12 +4048,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.7.4":
-  version: 3.7.4
-  resolution: "prettier@npm:3.7.4"
+"prettier@npm:3.8.1":
+  version: 3.8.1
+  resolution: "prettier@npm:3.8.1"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/9675d2cd08eacb1faf1d1a2dbfe24bfab6a912b059fc9defdb380a408893d88213e794a40a2700bd29b140eb3172e0b07c852853f6e22f16f3374659a1a13389
+  checksum: 10c0/33169b594009e48f570471271be7eac7cdcf88a209eed39ac3b8d6d78984039bfa9132f82b7e6ba3b06711f3bfe0222a62a1bfb87c43f50c25a83df1b78a2c42
   languageName: node
   linkType: hard
 
