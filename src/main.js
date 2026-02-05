@@ -357,8 +357,8 @@ const createWindow = () => {
   let iconPath;
   switch (process.platform) {
     case "win32":
-      // iconPath = path.join(__dirname, "assets", "win.ico");
-      iconPath = path.join(__dirname, "assets", "fallback.png");
+      iconPath = path.join(__dirname, "assets", "win.ico");
+      // iconPath = path.join(__dirname, "assets", "fallback.png");
       break;
     case "darwin":
       iconPath = path.join(__dirname, "assets", "mac.icns");
