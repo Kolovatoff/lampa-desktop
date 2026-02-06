@@ -57,7 +57,7 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ steps.get_version.outputs.version }}"
-          awk -v ver="$VERSION" '/^## / {if ($2 == ver) {flag=1; print} else if (flag) exit} flag && !/^## /' CHANGELOG.md > changelog.txt
+          sed -n "/^## \\[${VERSION}\\]/,/^## /p" CHANGELOG.md | sed '$d' > changelog.txt
           if [ ! -s changelog.txt ]; then
             echo "No changelog entries found for version $VERSION"
             echo "body=No changelog entries found for version $VERSION" >> $GITHUB_OUTPUT
