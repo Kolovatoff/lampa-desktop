@@ -292,6 +292,23 @@ ipcMain.handle("import-settings", async () => {
     }
 
     if (settings.lampa) {
+      if (settings.lampa.plugins) {
+        try {
+          const pluginsArray = JSON.parse(settings.lampa.plugins);
+
+          const filteredPlugins = pluginsArray.filter((plugin) => {
+            const cleanUrl = plugin.url
+              .replace(/^https?:\/\//, "")
+              .replace(/^\/\//, "");
+            return cleanUrl !== "lampa.kolovatoff.ru/ei.js";
+          });
+
+          settings.lampa.plugins = JSON.stringify(filteredPlugins, null, 2);
+        } catch (e) {
+          console.warn('Ошибка при обработке поля "plugins":', e);
+        }
+      }
+
       await mainWindow.webContents.executeJavaScript(`
         localStorage.clear();
         Lampa.Cache.clearAll()
@@ -364,6 +381,10 @@ const createWindow = () => {
   const savedState = loadWindowState();
   const displays = screen.getAllDisplays();
 
+  if (process.argv.includes("--dev")) {
+    console.log("List displays:", displays);
+  }
+
   let windowOptions = {
     minWidth: 800,
     minHeight: 600,
@@ -380,28 +401,35 @@ const createWindow = () => {
     fullscreen: Boolean(store.get("fullscreen")),
   };
 
+  let targetDisplay;
+  if (savedState && savedState.displayId) {
+    targetDisplay = displays.find((d) => d.id === savedState.displayId);
+  }
+  if (!targetDisplay) {
+    targetDisplay = displays[0];
+  }
+
+  const displayBounds = targetDisplay.bounds;
+
   if (savedState && savedState.width && savedState.height) {
-    const targetDisplay = displays.find((d) => d.id === savedState.displayId);
+    const maxX = displayBounds.x + displayBounds.width - savedState.width;
+    const maxY = displayBounds.y + displayBounds.height - savedState.height;
 
-    if (targetDisplay) {
-      // Проверяем, что окно не выходит за пределы дисплея
-      const displayBounds = targetDisplay.bounds;
-      const maxX = displayBounds.x + displayBounds.width - savedState.width;
-      const maxY = displayBounds.y + displayBounds.height - savedState.height;
-
-      windowOptions.x = Math.max(displayBounds.x, Math.min(savedState.x, maxX));
-      windowOptions.y = Math.max(displayBounds.y, Math.min(savedState.y, maxY));
-      windowOptions.width = savedState.width;
-      windowOptions.height = savedState.height;
-    } else {
-      // Если дисплей не найден, используем размеры, но на основном дисплее
-      windowOptions.width = savedState.width;
-      windowOptions.height = savedState.height;
-    }
+    windowOptions.x = Math.max(
+      displayBounds.x,
+      Math.min(savedState.x || 0, maxX),
+    );
+    windowOptions.y = Math.max(
+      displayBounds.y,
+      Math.min(savedState.y || 0, maxY),
+    );
+    windowOptions.width = savedState.width;
+    windowOptions.height = savedState.height;
   } else {
-    // Значения по умолчанию
     windowOptions.width = 1200;
     windowOptions.height = 800;
+    windowOptions.x = displayBounds.x;
+    windowOptions.y = displayBounds.y;
   }
 
   mainWindow = new BrowserWindow(windowOptions);
@@ -410,12 +438,18 @@ const createWindow = () => {
 
   mainWindow.once("ready-to-show", () => {
     if (savedState && !windowOptions.fullscreen) {
-      mainWindow.setBounds({
-        x: windowOptions.x,
-        y: windowOptions.y,
-        width: windowOptions.width,
-        height: windowOptions.height,
-      });
+      try {
+        mainWindow.setBounds({
+          x: windowOptions.x,
+          y: windowOptions.y,
+          width: windowOptions.width,
+          height: windowOptions.height,
+        });
+      } catch (error) {
+        console.error("Ошибка при установке границ окна:", error);
+        // Устанавливаем безопасные значения по умолчанию
+        mainWindow.setBounds({ x: 0, y: 0, width: 1200, height: 800 });
+      }
     }
 
     mainWindow.show();
