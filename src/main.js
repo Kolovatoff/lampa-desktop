@@ -15,6 +15,20 @@ const Store = require("electron-store").default;
 const httpProxy = require("http-proxy");
 const { autoUpdater } = require("electron-updater");
 
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+  process.exit(0);
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 // Настройка автообновлений
 autoUpdater.logger = console;
 autoUpdater.autoDownload = true;
@@ -108,11 +122,7 @@ const server = http.createServer((req, res) => {
     res.end("Not Found. Use /vlc path for VLC proxy.");
   }
 });
-
-const proxyServer = server.listen(4000, "localhost", () => {
-  console.log(`Proxy server running on http://localhost:4000`);
-  console.log("Access VLC via /vlc to VLC at http://localhost:3999");
-});
+let proxyServer = null;
 // endregion Proxy
 
 // region Автообновления
@@ -695,6 +705,13 @@ ipcMain.on("child-process-spawn", async (event, id, cmd, args, opts) => {
 });
 
 app.whenReady().then(async () => {
+  // Проверяем, что мы — единственный экземпляр
+  if (!gotTheLock) return;
+
+  proxyServer = server.listen(4000, "localhost", () => {
+    console.log(`Proxy server running on http://localhost:4000`);
+    console.log("Access VLC via /vlc to VLC at http://localhost:3999");
+  });
   createWindow();
 
   app.on("activate", () => {
@@ -720,17 +737,16 @@ app.on("window-all-closed", () => {
   }
 });
 
-const gotTheLock = app.requestSingleInstanceLock();
+app.on("before-quit", () => {
+  if (proxyServer) {
+    proxyServer.close(() => {
+      console.log("Proxy server on port 4000 closed");
+    });
+  }
+});
 
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on("second-instance", () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-      }
-      mainWindow.focus();
-    }
-  });
-}
+app.on("will-quit", () => {
+  if (proxyServer) {
+    proxyServer.close();
+  }
+});
