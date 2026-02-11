@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.1.0...v1.1.1) (2026-02-11)
+
+### 🐛 Исправления
+
+- исправление отображения иконки на linux ([d7e8c1c](https://github.com/Kolovatoff/lampa-desktop/commit/d7e8c1c2c300d51eaf25069ac7eebeb1a9d5742b))
+- исправление ошибки создания окна при изменении DisplayID ([190211e](https://github.com/Kolovatoff/lampa-desktop/commit/190211e24cdd4a41d621f8ee20265c7798499aed))
+
+### ♻️ Рефакторинг
+
+- изменены иконки ([a4154c6](https://github.com/Kolovatoff/lampa-desktop/commit/a4154c6cadd5ee394b263dbd7e9209fb78ca8875))
+- убраны icon из createWindow ([f2dce8e](https://github.com/Kolovatoff/lampa-desktop/commit/f2dce8e262bd7b747528ddf05d3d1743e58c30e3))
+- улучшенная проверка на запуск одного экземпляра приложения и доп проверки остановки веб для vlc ([4f58b13](https://github.com/Kolovatoff/lampa-desktop/commit/4f58b13eb25832767248c75e687b961d0785604b))
+
+### 🔧 CI/CD
+
+- исправление скрипта получения changelog ([e0a0c03](https://github.com/Kolovatoff/lampa-desktop/commit/e0a0c033c5676991c1658a5c76abadb1af2158b4))
+
 ## [1.1.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.0.0...v1.1.0) (2026-02-04)
 
 ### ✨ Новые возможности
