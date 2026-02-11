@@ -35,13 +35,13 @@
     "electron-store": "11.0.2",
     "electron-updater": "6.7.3",
     "http-proxy": "1.18.1",
-    "which": "6.0.0"
+    "which": "6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",
     "commit-and-tag-version": "12.6.1",
-    "electron": "40.1.0",
-    "electron-builder": "26.4.0",
+    "electron": "40.3.0",
+    "electron-builder": "26.7.0",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
     "globals": "17.3.0",
