@@ -63,6 +63,10 @@
         ru: "Сохранено, ожидайте перехода...",
         en: "Saved, waiting for redirect...",
       },
+      app_settings_lampa_url_error: {
+        ru: "Неверный URL",
+        en: "Invalid URL",
+      },
       app_settings_about_field_name: {
         ru: "О приложении",
         en: "About the app",
@@ -87,6 +91,10 @@
         ru: "Сохранить настройки в файл",
         en: "Save settings to file",
       },
+      app_settings_ie_btn_export_cloud_subtitle: {
+        ru: "Сохранить настройки в облако. Ваши данные будут зашифрованы перед отправкой с помощью пин-кода и хранятся 1 час.",
+        en: "Save settings to the cloud. Your data will be encrypted before sending using a PIN code and stored for 1 hour.",
+      },
       app_settings_ie_btn_import_title: {
         ru: "Импорт",
         en: "Import",
@@ -95,9 +103,25 @@
         ru: "Импортировать настройки из файла",
         en: "Import settings from file",
       },
+      app_settings_ie_btn_import_cloud_subtitle: {
+        ru: "Импортировать настройки из облака",
+        en: "Import settings from cloud",
+      },
       app_settings_noty_waiting: {
         ru: "Ожидайте...",
         en: "Please wait...",
+      },
+      app_settings_ie_import_success: {
+        ru: "Импорт выполнен успешно",
+        en: "Import completed successfully",
+      },
+      app_settings_ie_import_error: {
+        ru: "Ошибка импорта",
+        en: "Import error",
+      },
+      app_settings_ie_invalid_pin: {
+        ru: "Неверный PIN-код",
+        en: "Invalid PIN",
       },
     });
 
@@ -135,7 +159,7 @@
         console.error("APP", "Не удалось получить значение fullscreen:", error);
       });
 
-    // Полноэкранный режим
+    // Автообновление
     window.electronAPI
       .getStoreValue("autoUpdate")
       .then((autoUpdate) => {
@@ -283,6 +307,7 @@
       },
     });
 
+    // Экспорт/Импорт настроек
     Lampa.SettingsApi.addParam({
       component: "app_settings",
       param: {
@@ -291,40 +316,252 @@
       },
       field: {
         name: Lampa.Lang.translate("app_settings_ie_field_name"),
-        description: Lampa.Lang.translate(
-          "app_settings_about_field_description",
-        ),
+        description: Lampa.Lang.translate("app_settings_ie_field_description"),
       },
       onChange: () => {
         Lampa.Select.show({
           title: Lampa.Lang.translate("app_settings_ie_field_name"),
           items: [
             {
+              title: "Облако",
+              separator: true,
+            },
+            {
+              title: Lampa.Lang.translate("app_settings_ie_btn_export_title"),
+              subtitle: Lampa.Lang.translate(
+                "app_settings_ie_btn_export_cloud_subtitle",
+              ),
+              action: "e-cloud",
+            },
+            {
+              title: Lampa.Lang.translate("app_settings_ie_btn_import_title"),
+              subtitle: Lampa.Lang.translate(
+                "app_settings_ie_btn_import_cloud_subtitle",
+              ),
+              action: "i-cloud",
+            },
+            {
+              title: "Локально",
+              separator: true,
+            },
+            {
               title: Lampa.Lang.translate("app_settings_ie_btn_export_title"),
               subtitle: Lampa.Lang.translate(
                 "app_settings_ie_btn_export_subtitle",
               ),
-              export: true,
+              action: "e-file",
             },
             {
               title: Lampa.Lang.translate("app_settings_ie_btn_import_title"),
               subtitle: Lampa.Lang.translate(
                 "app_settings_ie_btn_import_subtitle",
               ),
+              action: "i-file",
             },
           ],
           onSelect: async (a) => {
             Lampa.Noty.show(Lampa.Lang.translate("app_settings_noty_waiting"));
             try {
               let result;
-              if (a.export) {
-                result = await window.electronAPI.exportSettings();
-              } else {
-                result = await window.electronAPI.importSettings();
+
+              if (a.action === "e-cloud") {
+                result = await window.electronAPI.exportSettingsToCloud();
+                if (result && result.message) {
+                  Lampa.Noty.show(result.message);
+                }
+              } else if (a.action === "i-cloud") {
+                // Функция для показа модального окна ввода 10-значного кода
+                async function showTenDigitModal() {
+                  return new Promise((resolve) => {
+                    let html = $(`
+                      <div class="account-modal-split">
+                        <div class="account-modal-split__info">
+                          <div class="account-modal-split__title">Импорт настроек из облака</div>
+                          <div class="account-modal-split__text">Введите ID</div>
+                          <div class="account-modal-split__code">
+                            ${Array(10).fill('<div class="account-modal-split__code-num"><span>-</span></div>').join("")}
+                          </div>
+                          <div class="account-modal-split__keyboard">
+                            <div class="simple-keyboard"></div>
+                          </div>
+                        </div>
+                      </div>`);
+
+                    let nums = html.find(".account-modal-split__code-num");
+                    let keyboard;
+
+                    if (Lampa.Platform.tv()) {
+                      html.addClass(
+                        "layer--" +
+                          (Lampa.Platform.mouse() ? "wheight" : "height"),
+                      );
+                    } else {
+                      html.addClass("account-modal-split--mobile");
+                    }
+
+                    function drawCode(value) {
+                      nums.find("span").text("-");
+                      value.split("").forEach((v, i) => {
+                        if (nums[i]) nums.eq(i).find("span").text(v);
+                      });
+                    }
+
+                    Lampa.Modal.open({
+                      title: "",
+                      html: html,
+                      size: Lampa.Platform.tv() ? "full" : "medium",
+                      scroll: { nopadding: true },
+                      onBack: () => {
+                        if (
+                          keyboard &&
+                          typeof keyboard.destroy === "function"
+                        ) {
+                          keyboard.destroy();
+                          keyboard = null;
+                        }
+                        Lampa.Modal.close();
+                        Lampa.Controller.toggle("settings_component");
+                        resolve(null);
+                      },
+                    });
+
+                    keyboard = new window.SimpleKeyboard.default({
+                      display: {
+                        "{BKSP}": "&nbsp;",
+                        "{ENTER}": "&nbsp;",
+                      },
+                      layout: {
+                        default: ["0 1 2 3 4 {BKSP}", "5 6 7 8 9 {ENTER}"],
+                      },
+                      onChange: async (value) => {
+                        drawCode(value);
+                        if (value.length === 10) {
+                          if (
+                            keyboard &&
+                            typeof keyboard.destroy === "function"
+                          ) {
+                            keyboard.destroy();
+                            keyboard = null;
+                          }
+                          Lampa.Modal.close();
+                          // Открываем второй модал для PIN и получаем результат
+                          const pinResult = await showPinModal(value);
+                          resolve(pinResult);
+                        }
+                      },
+                      onKeyPress: async (button) => {
+                        if (button === "{BKSP}") {
+                          keyboard.setInput(keyboard.getInput().slice(0, -1));
+                          drawCode(keyboard.getInput());
+                        } else if (button === "{ENTER}") {
+                          if (keyboard.getInput().length === 10) {
+                            if (
+                              keyboard &&
+                              typeof keyboard.destroy === "function"
+                            ) {
+                              keyboard.destroy();
+                              keyboard = null;
+                            }
+                            Lampa.Modal.close();
+                            const pinResult = await showPinModal(
+                              keyboard.getInput(),
+                            );
+                            resolve(pinResult);
+                          }
+                        }
+                      },
+                    });
+
+                    let keys = $(".simple-keyboard .hg-button").addClass(
+                      "selector",
+                    );
+                    Lampa.Controller.collectionSet($(".simple-keyboard"));
+                    Lampa.Controller.collectionFocus(
+                      keys[0],
+                      $(".simple-keyboard"),
+                    );
+                    $(".simple-keyboard .hg-button").on(
+                      "hover:enter",
+                      function (e) {
+                        Lampa.Controller.collectionFocus($(this)[0]);
+                        keyboard.handleButtonClicked(
+                          $(this).attr("data-skbtn"),
+                          e,
+                        );
+                      },
+                    );
+                  });
+                }
+
+                // Функция для показа модального окна ввода PIN-кода
+                async function showPinModal(code10) {
+                  return new Promise((resolve) => {
+                    Lampa.Input.edit(
+                      {
+                        free: true,
+                        title: "Введите PIN-код",
+                        nosave: true,
+                        value: "",
+                        layout: "nums",
+                        keyboard: "lampa",
+                        password: false,
+                      },
+                      async (pin4) => {
+                        if (pin4 && pin4.length === 4) {
+                          try {
+                            const importResult =
+                              await window.electronAPI.importSettingsFromCloud(
+                                code10,
+                                pin4,
+                              );
+                            resolve(importResult);
+                          } catch (error) {
+                            resolve({
+                              message:
+                                Lampa.Lang.translate(
+                                  "app_settings_ie_import_error",
+                                ) +
+                                ": " +
+                                error.toString(),
+                            });
+                          }
+                        } else {
+                          resolve({
+                            message: Lampa.Lang.translate(
+                              "app_settings_ie_invalid_pin",
+                            ),
+                          });
+                        }
+                        Lampa.Controller.toggle("menu");
+                      },
+                    );
+                  });
+                }
+
+                // Запускаем процесс импорта из облака
+                result = await showTenDigitModal();
+                if (result && result.message) {
+                  Lampa.Noty.show(result.message);
+                } else if (result === null) {
+                  // Пользователь закрыл модальное окно
+                } else {
+                  Lampa.Noty.show(
+                    Lampa.Lang.translate("app_settings_ie_import_success"),
+                  );
+                }
+              } else if (a.action === "e-file") {
+                result = await window.electronAPI.exportSettingsToFile();
+                if (result && result.message) {
+                  Lampa.Noty.show(result.message);
+                }
+              } else if (a.action === "i-file") {
+                result = await window.electronAPI.importSettingsFromFile();
+                if (result && result.message) {
+                  Lampa.Noty.show(result.message);
+                }
               }
-              Lampa.Noty.show(result.message);
             } catch (error) {
-              Lampa.Noty.show(error);
+              Lampa.Noty.show(error.toString());
             }
           },
           onBack: () => {

@@ -75,10 +75,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
   deleteStoreKey: async (key) => {
     return await ipcRenderer.invoke("store-delete", key);
   },
-  exportSettings: async () => {
-    return await ipcRenderer.invoke("export-settings");
+  exportSettingsToCloud: async () => {
+    return await ipcRenderer.invoke("export-settings-to-cloud");
   },
-  importSettings: async () => {
-    return await ipcRenderer.invoke("import-settings");
+  importSettingsFromCloud: async (id, pin) => {
+    return await ipcRenderer.invoke("import-settings-from-cloud", id, pin);
+  },
+  exportSettingsToFile: async () => {
+    return await ipcRenderer.invoke("export-settings-to-file");
+  },
+  importSettingsFromFile: async () => {
+    return await ipcRenderer.invoke("import-settings-from-file");
   },
 });
