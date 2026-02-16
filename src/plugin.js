@@ -133,8 +133,8 @@
     });
 
     // Полноэкранный режим
-    window.electronAPI
-      .getStoreValue("fullscreen")
+    window.electronAPI.store
+      .get("fullscreen")
       .then((fullscreen) => {
         localStorage.setItem("app_settings_fullscreen", fullscreen);
         Lampa.SettingsApi.addParam({
@@ -148,10 +148,7 @@
             name: Lampa.Lang.translate("app_settings_fullscreen_field_name"),
           },
           onChange: async function (value) {
-            await window.electronAPI.setStoreValue(
-              "fullscreen",
-              value === "true",
-            );
+            await window.electronAPI.store.set("fullscreen", value === "true");
           },
         });
       })
@@ -160,8 +157,8 @@
       });
 
     // Автообновление
-    window.electronAPI
-      .getStoreValue("autoUpdate")
+    window.electronAPI.store
+      .get("autoUpdate")
       .then((autoUpdate) => {
         localStorage.setItem("app_settings_autoupdate", autoUpdate);
         Lampa.SettingsApi.addParam({
@@ -175,10 +172,7 @@
             name: Lampa.Lang.translate("app_settings_autoupdate_field_name"),
           },
           onChange: async function (value) {
-            await window.electronAPI.setStoreValue(
-              "autoUpdate",
-              value === "true",
-            );
+            await window.electronAPI.store.set("autoUpdate", value === "true");
           },
         });
       })
@@ -187,8 +181,8 @@
       });
 
     // URL Лампы
-    window.electronAPI
-      .getStoreValue("lampaUrl")
+    window.electronAPI.store
+      .get("lampaUrl")
       .then((lampaUrl) => {
         localStorage.setItem("app_settings_lampa_url", lampaUrl);
         Lampa.SettingsApi.addParam({
@@ -216,7 +210,7 @@
               );
               setTimeout(
                 async () =>
-                  await window.electronAPI.setStoreValue("lampaUrl", value),
+                  await window.electronAPI.store.set("lampaUrl", value),
                 1000,
               );
             } else {

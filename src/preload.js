@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+// ============ Модуль для Node.js модулей ============
 contextBridge.exposeInMainWorld("require", (module) => {
   if (module === "fs") {
     return {
@@ -54,27 +55,33 @@ contextBridge.exposeInMainWorld("require", (module) => {
   return undefined;
 });
 
+// ============ Основное Electron API ============
 contextBridge.exposeInMainWorld("electronAPI", {
+  // Управление приложением
   closeApp: () => ipcRenderer.send("close-app"),
   toogleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
-  loadUrl: (url) => {
-    ipcRenderer.send("load-url", url);
-  },
+  loadUrl: (url) => ipcRenderer.send("load-url", url),
   getAppVersion: async () => {
     return await ipcRenderer.invoke("get-app-version");
   },
-  getStoreValue: async (key) => {
-    return await ipcRenderer.invoke("store-get", key);
+
+  // Работа с хранилищем
+  store: {
+    get: async (key) => {
+      return await ipcRenderer.invoke("store-get", key);
+    },
+    set: async (key, value) => {
+      return await ipcRenderer.invoke("store-set", key, value);
+    },
+    has: async (key) => {
+      return await ipcRenderer.invoke("store-has", key);
+    },
+    delete: async (key) => {
+      return await ipcRenderer.invoke("store-delete", key);
+    },
   },
-  setStoreValue: async (key, value) => {
-    return await ipcRenderer.invoke("store-set", key, value);
-  },
-  hasStoreKey: async (key) => {
-    return await ipcRenderer.invoke("store-has", key);
-  },
-  deleteStoreKey: async (key) => {
-    return await ipcRenderer.invoke("store-delete", key);
-  },
+
+  // Экспорт/импорт настроек
   exportSettingsToCloud: async () => {
     return await ipcRenderer.invoke("export-settings-to-cloud");
   },
@@ -88,3 +95,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return await ipcRenderer.invoke("import-settings-from-file");
   },
 });
+
+console.log("Preload script loaded successfully");
