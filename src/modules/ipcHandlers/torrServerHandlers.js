@@ -38,7 +38,20 @@ function registerTorrServerHandlers() {
     return await torrServerManager.update();
   });
 
-  // Подписка на вывод (через WebContents)
+  // Удаление
+  ipcMain.handle(
+    "torrserver-uninstall",
+    async (event, options = { keepData: false }) => {
+      return await torrServerManager.uninstall(options);
+    },
+  );
+
+  // Проверка установки
+  ipcMain.handle("torrserver-is-installed", async () => {
+    return await torrServerManager.isInstalled();
+  });
+
+  // Подписка на вывод
   ipcMain.on("torrserver-subscribe-output", (event) => {
     const unsubscribe = torrServerManager.onOutput((output) => {
       if (!event.sender.isDestroyed()) {

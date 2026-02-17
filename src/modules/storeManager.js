@@ -7,6 +7,11 @@ const store = new Store({
     fullscreen: false,
     autoUpdate: true,
     windowState: {},
+    tsVersion: null,
+    tsPath: null,
+    tsAutoStart: false,
+    tsHost: "localhost",
+    tsPort: 8090,
   },
 });
 

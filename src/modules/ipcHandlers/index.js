@@ -10,6 +10,7 @@ const registerProcessHandlers = require("./processHandlers");
 const registerWindowHandlers = require("./windowHandlers");
 const { registerSettingsHandlers } = require("./settingsHandlers");
 const registerCloudHandlers = require("./cloudHandlers");
+const registerTorrServerHandlers = require("./torrServerHandlers");
 
 function registerIpcHandlers() {
   // Базовые обработчики store
@@ -26,6 +27,9 @@ function registerIpcHandlers() {
 
   // Обработчики для облачного экспорта/импорта
   registerCloudHandlers(store, getMainWindow, injectPlugin);
+
+  // Обработчики для TorrServer
+  registerTorrServerHandlers();
 
   // Дополнительные обработчики
   ipcMain.handle("get-app-version", () => {

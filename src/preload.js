@@ -94,6 +94,43 @@ contextBridge.exposeInMainWorld("electronAPI", {
   importSettingsFromFile: async () => {
     return await ipcRenderer.invoke("import-settings-from-file");
   },
+
+  // ============ TorrServer API ============
+  torrServer: {
+    // Управление процессом
+    start: (args) => ipcRenderer.invoke("torrserver-start", args),
+    stop: () => ipcRenderer.invoke("torrserver-stop"),
+    restart: (args) => ipcRenderer.invoke("torrserver-restart", args),
+    getStatus: () => ipcRenderer.invoke("torrserver-status"),
+
+    // Установка и обновление
+    download: (version) => ipcRenderer.invoke("torrserver-download", version),
+    checkUpdate: () => ipcRenderer.invoke("torrserver-check-update"),
+    update: () => ipcRenderer.invoke("torrserver-update"),
+
+    // Подписка на вывод процесса (для отображения логов в интерфейсе)
+    onOutput: (callback) => {
+      const subscription = (event, data) => callback(data);
+      ipcRenderer.on("torrserver-output", subscription);
+
+      // Подписываемся на вывод (инициируем отправку логов из main процесса)
+      ipcRenderer.send("torrserver-subscribe-output");
+
+      // Возвращаем функцию для отписки
+      return () => {
+        ipcRenderer.removeListener("torrserver-output", subscription);
+      };
+    },
+
+    // Короткая форма для проверки статуса (удобно для кнопок)
+    isRunning: async () => {
+      const status = await ipcRenderer.invoke("torrserver-status");
+      return status.running;
+    },
+    uninstall: (keepData = false) =>
+      ipcRenderer.invoke("torrserver-uninstall", { keepData }),
+    isInstalled: () => ipcRenderer.invoke("torrserver-is-installed"),
+  },
 });
 
 console.log("Preload script loaded successfully");
