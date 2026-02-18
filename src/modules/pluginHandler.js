@@ -1,10 +1,12 @@
 const { readFileSync } = require("fs");
 const path = require("node:path");
+const lampaInitializer = require("./lampaInitializer");
 
 function setupPluginHandler(mainWindow) {
   mainWindow.webContents.on("did-finish-load", async () => {
     try {
       await waitForLampaReady(mainWindow);
+      await lampaInitializer.initialize(mainWindow);
       injectPlugin(mainWindow);
     } catch (err) {
       console.error("Ошибка при перезагрузке:", err);
