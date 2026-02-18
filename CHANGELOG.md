@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.1.1...v1.2.0) (2026-02-18)
+
+### ✨ Новые возможности
+
+- встроенный torrserver ([47c73bf](https://github.com/Kolovatoff/lampa-desktop/commit/47c73bfd116dcffa7399755a525db28330f13c2f))
+- модуль инициализации хранилища лампы ([95bfd45](https://github.com/Kolovatoff/lampa-desktop/commit/95bfd45e98e50f3ae7eba6e0b374f46bb4e20f8e))
+- модуль поиска установленного VLC ([57bb036](https://github.com/Kolovatoff/lampa-desktop/commit/57bb0365c69f4c1c33e1ab20b3dbf54a848dd145))
+- модуль работы с папками и открытие TS папки ([f6e1c3e](https://github.com/Kolovatoff/lampa-desktop/commit/f6e1c3e6c2b0708e6f3241487c5810f03ba43f1d))
+
+### 📚 Документация
+
+- изменена инструкция export-import.md ([23fd66b](https://github.com/Kolovatoff/lampa-desktop/commit/23fd66bc16ffd82e500cbad6310c86f4cf808f02))
+- обновление документации по экспорту/импорту ([dd72ee8](https://github.com/Kolovatoff/lampa-desktop/commit/dd72ee8123065a6d55f3faf3a6745d2f42739617))
+- обновление README.md ([081d5d8](https://github.com/Kolovatoff/lampa-desktop/commit/081d5d8e8f5856bb7c7cd62fe34b5e26f581a106))
+
+### ♻️ Рефакторинг
+
+- добавление ссылки на ts по-умолчанию localhost ([d858ba7](https://github.com/Kolovatoff/lampa-desktop/commit/d858ba7221e3da2698b46b717c78fb3f6c4e16b9))
+- изменение структуры приложения ([6e3cc84](https://github.com/Kolovatoff/lampa-desktop/commit/6e3cc8466f0be381f6fe42fb2c8330b69dede0a4))
+- обновление плагина экспорт/импорт ([75410a0](https://github.com/Kolovatoff/lampa-desktop/commit/75410a050100cf2b9e274139ec8e081516748941))
+
 ## [1.1.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.1.0...v1.1.1) (2026-02-11)
 
 ### 🐛 Исправления
