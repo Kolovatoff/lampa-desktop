@@ -62,7 +62,6 @@ class ProxyServerManager {
   }
 
   close() {
-    // Если уже закрыто или закрывается - возвращаем существующий промис
     if (this.isClosed) {
       return Promise.resolve();
     }
@@ -94,7 +93,6 @@ class ProxyServerManager {
   }
 }
 
-// Создаем синглтон
 const proxyManager = new ProxyServerManager();
 
 module.exports = {

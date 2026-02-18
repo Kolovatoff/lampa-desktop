@@ -65,7 +65,6 @@
     }
 
     apply() {
-      // Сортируем по order
       this.queue.sort((a, b) => (a.order || 999) - (b.order || 999));
 
       this.queue.forEach((item) => {
@@ -77,7 +76,7 @@
         });
       });
 
-      this.queue = []; // Очищаем очередь
+      this.queue = [];
     }
   }
 
@@ -224,7 +223,6 @@
 
     const settingsManager = new SettingsManager("app_settings");
 
-    // Загружаем асинхронные настройки
     Promise.all([
       settingsManager.loadAsyncSetting("fullscreen", {
         order: 3,
@@ -286,7 +284,6 @@
         },
       }),
     ]).then(() => {
-      // Добавляем синхронные настройки
       settingsManager
         .addToQueue({
           order: 1,
@@ -369,7 +366,7 @@
               },
               null,
               {
-                cache: { life: 10 }, // кеш на 10 минут
+                cache: { life: 10 },
               },
             );
           },
@@ -698,7 +695,7 @@
             });
           },
         })
-        .apply(); // Применяем все сразу
+        .apply();
     });
 
     const settingsTsManager = new SettingsManager("app_settings_ts");
@@ -723,7 +720,6 @@
         param: {
           name: "app_settings_ts_tsHost",
           type: "input",
-          // placeholder: Lampa.Lang.translate("app_settings_ts_host_placeholder"),
           values: "",
         },
         field: {
@@ -744,7 +740,6 @@
         param: {
           name: "app_settings_ts_tsPort",
           type: "input",
-          // placeholder: Lampa.Lang.translate("app_settings_ts_port_placeholder"),
           values: "",
         },
         field: {
@@ -1007,7 +1002,7 @@
             name: "Осторожно!",
           },
         })
-        .apply(); // Применяем все сразу
+        .apply();
     });
 
     function updateTsStatus() {

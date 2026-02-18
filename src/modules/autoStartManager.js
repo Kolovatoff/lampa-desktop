@@ -58,6 +58,5 @@ class AutoStartManager {
   }
 }
 
-// Создаем синглтон
 const autoStartManager = new AutoStartManager();
 module.exports = autoStartManager;

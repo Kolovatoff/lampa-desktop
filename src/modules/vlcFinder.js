@@ -7,9 +7,7 @@ class VLCFinder {
     this.foundPath = null;
   }
 
-  /**
-   * Поиск VLC на всех поддерживаемых ОС
-   */
+  // Поиск VLC на всех поддерживаемых ОС
   async findVLC() {
     console.log("🔍 Поиск VLC плеера...");
 
@@ -41,9 +39,7 @@ class VLCFinder {
     return foundPath;
   }
 
-  /**
-   * Поиск VLC на Windows - только стандартные пути
-   */
+  // Поиск VLC на Windows
   findVLCWindows() {
     const programFiles = process.env.ProgramFiles || "C:\\Program Files";
     const programFilesX86 =
@@ -65,9 +61,7 @@ class VLCFinder {
     return null;
   }
 
-  /**
-   * Поиск VLC на macOS - стандартный путь
-   */
+  // Поиск VLC на macOS
   async findVLCMac() {
     const standardPath = "/Applications/VLC.app/Contents/MacOS/VLC";
     if (existsSync(standardPath)) {
@@ -75,11 +69,8 @@ class VLCFinder {
     }
   }
 
-  /**
-   * Поиск VLC на Linux - стандартные пути
-   */
+  // Поиск VLC на Linux
   async findVLCLinux() {
-    // Стандартные пути
     const standardPaths = [
       "/usr/bin/vlc",
       "/usr/local/bin/vlc",
@@ -95,16 +86,11 @@ class VLCFinder {
     return null;
   }
 
-  /**
-   * Простая проверка существования файла
-   */
   validateVLC(vlcPath) {
     return existsSync(vlcPath);
   }
 
-  /**
-   * Получить путь к VLC
-   */
+  // Получить путь к VLC
   async getVLCPath() {
     if (this.foundPath) {
       return this.foundPath;
@@ -112,9 +98,7 @@ class VLCFinder {
     return await this.findVLC();
   }
 
-  /**
-   * Проверить путь в localStorage
-   */
+  // Проверить путь в localStorage
   async checkLocalStoragePath(mainWindow) {
     try {
       return await mainWindow.webContents.executeJavaScript(`
@@ -126,9 +110,7 @@ class VLCFinder {
     }
   }
 
-  /**
-   * Сохранить путь в localStorage Lampa
-   */
+  // Сохранить путь в localStorage Lampa
   async saveToLocalStorage(mainWindow, vlcPath) {
     if (!vlcPath) {
       vlcPath = await this.getVLCPath();
@@ -160,9 +142,7 @@ class VLCFinder {
     }
   }
 
-  /**
-   * Открыть диалог выбора VLC
-   */
+  // Диалог выбора VLC
   async showManualSelectDialog(mainWindow) {
     const { dialog } = require("electron");
 

@@ -58,7 +58,6 @@ class LampaInitializer {
     if (vlcPath) {
       await vlcFinder.saveToLocalStorage(mainWindow, vlcPath);
     } else {
-      // Показываем уведомление
       await mainWindow.webContents.executeJavaScript(`
         setTimeout(() => {
           if (window.Lampa?.Noty) {

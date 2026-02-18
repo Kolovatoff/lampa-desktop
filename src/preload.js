@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-// ============ Модуль для Node.js модулей ============
+// Модуль для Node.js модулей
 contextBridge.exposeInMainWorld("require", (module) => {
   if (module === "fs") {
     return {
@@ -55,7 +55,7 @@ contextBridge.exposeInMainWorld("require", (module) => {
   return undefined;
 });
 
-// ============ Основное Electron API ============
+// Основное Electron API
 contextBridge.exposeInMainWorld("electronAPI", {
   // Управление приложением
   closeApp: () => ipcRenderer.send("close-app"),

@@ -1,6 +1,5 @@
 const { app } = require("electron");
 
-// Импорт модулей
 const { setupAppLifecycle, gotTheLock } = require("./modules/appLifecycle");
 const { createWindow } = require("./modules/windowManager");
 const { setupProxyServer, closeProxyServer } = require("./modules/proxyServer");
@@ -9,20 +8,15 @@ const { registerIpcHandlers } = require("./modules/ipcHandlers");
 const torrServerManager = require("./modules/torrServerManager");
 const autoStartManager = require("./modules/autoStartManager");
 
-// Настройка жизненного цикла приложения (один экземпляр)
 setupAppLifecycle();
 
-// Регистрация всех IPC-обработчиков
 registerIpcHandlers();
 
 app.whenReady().then(async () => {
-  // Проверяем, что мы — единственный экземпляр
   if (!gotTheLock) return;
 
-  // Запуск прокси-сервера
   setupProxyServer();
 
-  // Создание главного окна
   createWindow();
 
   setTimeout(async () => {
@@ -31,7 +25,7 @@ app.whenReady().then(async () => {
     } catch (error) {
       console.error("Ошибка при автозапуске TorrServer:", error);
     }
-  }, 3000); // Задержка 3 секунды после старта приложения
+  }, 3000);
 
   app.on("activate", () => {
     const { BrowserWindow } = require("electron");
@@ -40,7 +34,6 @@ app.whenReady().then(async () => {
     }
   });
 
-  // Настройка автообновлений
   setupAutoUpdater();
 });
 
@@ -50,7 +43,6 @@ app.on("window-all-closed", () => {
   }
 });
 
-// Единый обработчик с защитой от множественных вызовов
 let isQuitting = false;
 
 app.on("will-quit", async (event) => {
@@ -97,7 +89,6 @@ app.on("will-quit", async (event) => {
   }
 
   try {
-    // Останавливаем прокси-сервер
     console.log("🛑 Остановка прокси-сервера...");
     await closeProxyServer();
     console.log("✅ Прокси-сервер остановлен");
@@ -116,7 +107,7 @@ app.on("before-quit", () => {
     try {
       torrServerManager.process.kill("SIGKILL");
     } catch {
-      // Игнорируем ошибки при завершении
+      /* empty */
     }
   }
 });

@@ -22,7 +22,7 @@ class TorrServerManager {
     this.outputListeners = [];
   }
 
-  // ---------- Определение платформы ----------
+  // Определение платформы
   getPlatformInfo() {
     const platform = process.platform;
     const arch = process.arch;
@@ -74,7 +74,7 @@ class TorrServerManager {
     };
   }
 
-  // ---------- Создание необходимых папок ----------
+  // Создание необходимых папок
   async ensureDirectories() {
     const info = this.getPlatformInfo();
 
@@ -97,7 +97,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Получение последней версии с GitHub ----------
+  // Получение последней версии с GitHub
   async getLatestRelease() {
     try {
       const response = await fetch(GITHUB_API, {
@@ -120,7 +120,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Загрузка TorrServer ----------
+  // Загрузка TorrServer
   async download(version = "latest") {
     const info = this.getPlatformInfo();
 
@@ -156,7 +156,6 @@ class TorrServerManager {
           .on("error", reject);
       });
 
-      // Сохраняем файл
       const fileStream = createWriteStream(info.savePath);
       await pipeline(response, fileStream);
 
@@ -179,7 +178,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Запуск TorrServer ----------
+  // Запуск TorrServer
   async start(args = []) {
     if (this.process) {
       return { success: false, message: "TorrServer уже запущен" };
@@ -205,7 +204,6 @@ class TorrServerManager {
         }
       }
 
-      // Аргументы по умолчанию
       const defaultArgs = [
         "--ip",
         store.get("tsHost") || "localhost",
@@ -215,7 +213,6 @@ class TorrServerManager {
         info.dataDir, // Используем правильный путь к папке данных
       ];
 
-      // Объединяем с пользовательскими аргументами
       const allArgs = [...defaultArgs, ...args];
 
       console.log("🚀 Запуск TorrServer с аргументами:", allArgs);
@@ -298,7 +295,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Остановка TorrServer ----------
+  // Остановка TorrServer
   async stop() {
     if (!this.process) {
       return { success: false, message: "TorrServer не запущен" };
@@ -329,7 +326,7 @@ class TorrServerManager {
     });
   }
 
-  // ---------- Перезапуск ----------
+  // Перезапуск
   async restart(args = []) {
     console.log("🔄 Перезапуск TorrServer...");
     await this.stop();
@@ -337,10 +334,9 @@ class TorrServerManager {
     return this.start(args);
   }
 
-  // ============ НОВОЕ: Удаление TorrServer ============
+  // Удаление TorrServer
   async uninstall(options = { keepData: false }) {
     try {
-      // Сначала останавливаем, если запущен
       if (this.process) {
         console.log("🛑 Останавливаем TorrServer перед удалением...");
         await this.stop();
@@ -403,7 +399,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Проверка установки ----------
+  // Проверка установки
   async isInstalled() {
     const info = this.getPlatformInfo();
     const version = store.get("tsVersion");
@@ -417,7 +413,7 @@ class TorrServerManager {
     };
   }
 
-  // ---------- Проверка обновлений ----------
+  // Проверка обновлений
   async checkForUpdate() {
     try {
       const currentVersion = store.get("tsVersion");
@@ -440,7 +436,7 @@ class TorrServerManager {
     }
   }
 
-  // ---------- Обновление ----------
+  // Обновление
   async update() {
     const check = await this.checkForUpdate();
 
@@ -466,7 +462,7 @@ class TorrServerManager {
     return downloadResult;
   }
 
-  // ---------- Получение статуса ----------
+  // Получение статуса
   getStatus() {
     const info = this.getPlatformInfo();
     return {
@@ -483,7 +479,7 @@ class TorrServerManager {
     };
   }
 
-  // ---------- Управление выводом ----------
+  // Управление выводом
   onOutput(callback) {
     this.outputListeners.push(callback);
     return () => {
@@ -500,6 +496,5 @@ class TorrServerManager {
   }
 }
 
-// Создаем и экспортируем синглтон
 const torrServerManager = new TorrServerManager();
 module.exports = torrServerManager;
