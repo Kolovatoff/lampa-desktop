@@ -1,5 +1,6 @@
 // modules/lampaInitializer.js
 const os = require("os");
+const vlcFinder = require("./vlcFinder");
 
 class LampaInitializer {
   async initialize(mainWindow) {
@@ -8,6 +9,9 @@ class LampaInitializer {
 
       // Базовая инициализация
       await this.initializeBasicSettings(mainWindow);
+
+      // Поиск и сохранение пути к VLC
+      await this.initializeVLCPath(mainWindow);
 
       console.log("✅ Lampa инициализирована");
     } catch (error) {
@@ -19,22 +23,48 @@ class LampaInitializer {
     const deviceName = `Lampa ${os.hostname()}`;
 
     await mainWindow.webContents.executeJavaScript(`
-            // Базовые настройки (только если не существуют)
-            const defaults = {
-                device_name: '${deviceName}',
-                platform: 'electron',
-                player_torrent: 'other',
-                poster_size: 'w500'
-            };
+      (function() {
+        const defaults = {
+          device_name: '${deviceName}',
+          platform: 'electron',
+          player_torrent: 'other',
+          poster_size: 'w500'
+        };
 
-            Object.entries(defaults).forEach(([key, value]) => {
-                if (!localStorage.getItem(key)) {
-                    localStorage.setItem(key, value);
-                }
-            });
+        Object.entries(defaults).forEach(([key, value]) => {
+          if (!localStorage.getItem(key)) {
+            localStorage.setItem(key, value);
+          }
+        });
 
-            console.log('Базовые настройки применены');
-        `);
+        console.log('App', Базовые настройки применены');
+      })();
+    `);
+  }
+
+  async initializeVLCPath(mainWindow) {
+    const existingPath = await vlcFinder.checkLocalStoragePath(mainWindow);
+
+    if (existingPath && vlcFinder.validateVLC(existingPath)) {
+      console.log(`✅ Путь к VLC уже есть: ${existingPath}`);
+      return;
+    }
+
+    console.log("🔍 Автоматический поиск VLC...");
+    const vlcPath = await vlcFinder.findVLC();
+
+    if (vlcPath) {
+      await vlcFinder.saveToLocalStorage(mainWindow, vlcPath);
+    } else {
+      // Показываем уведомление
+      await mainWindow.webContents.executeJavaScript(`
+        setTimeout(() => {
+          if (window.Lampa?.Noty) {
+            window.Lampa.Noty.show('VLC не найден. Видео может не работать. Установите VLC или другой плеер и укажите путь в настройках.', 15000);
+          }
+        }, 5000);
+      `);
+    }
   }
 }
 

@@ -47,48 +47,18 @@
       return this;
     }
 
-    // async loadAsyncSetting(key, paramConfig, description = false) {
-    //   try {
-    //     const value = await window.electronAPI.store.get(key);
-    //     localStorage.setItem(`${this.componentName}_${key}`, value);
-    //
-    //     this.addToQueue({
-    //       ...paramConfig,
-    //       param: {
-    //         ...paramConfig.param,
-    //         default: value,
-    //       },
-    //     });
-    //   } catch (error) {
-    //     console.error(`APP Failed to load ${key}:`, error);
-    //   }
-    // }
-
-    async loadAsyncSetting(key, paramConfig, description = false) {
+    async loadAsyncSetting(key, paramConfig) {
       try {
         const value = await window.electronAPI.store.get(key);
         localStorage.setItem(`${this.componentName}_${key}`, value);
 
-        if (description) {
-          this.addToQueue({
-            ...paramConfig,
-            param: {
-              ...paramConfig.param,
-            },
-            field: {
-              ...paramConfig.field,
-              description: value,
-            },
-          });
-        } else {
-          this.addToQueue({
-            ...paramConfig,
-            param: {
-              ...paramConfig.param,
-              default: value,
-            },
-          });
-        }
+        this.addToQueue({
+          ...paramConfig,
+          param: {
+            ...paramConfig.param,
+            default: value,
+          },
+        });
       } catch (error) {
         console.error(`APP Failed to load ${key}:`, error);
       }
@@ -273,7 +243,7 @@
       settingsManager.loadAsyncSetting("autoUpdate", {
         order: 4,
         param: {
-          name: "app_settings_autoupdate",
+          name: "app_settings_autoUpdate",
           type: "trigger",
         },
         field: {
@@ -287,7 +257,7 @@
       settingsManager.loadAsyncSetting("lampaUrl", {
         order: 5,
         param: {
-          name: "app_settings_lampa_url",
+          name: "app_settings_lampaUrl",
           type: "input",
           placeholder: Lampa.Lang.translate(
             "app_settings_lampa_url_placeholder",
