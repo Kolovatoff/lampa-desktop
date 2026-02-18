@@ -930,6 +930,27 @@
         })
         .addToQueue({
           component: "app_settings_ts",
+          order: 4.2,
+          param: {
+            name: "ts_open_path",
+            type: "button",
+          },
+          field: {
+            name: "📂 Открыть папку TorrServer",
+          },
+          onChange: async () => {
+            const status = await window.electronAPI.torrServer.getStatus();
+
+            console.log(status);
+            if (status.installed) {
+              await window.electronAPI.folder.open(status.executableDir);
+            } else {
+              Lampa.Noty.show("Сначала установите TorrServer, нажав на запуск");
+            }
+          },
+        })
+        .addToQueue({
+          component: "app_settings_ts",
           order: 10,
           param: {
             name: "ts_uninstall",

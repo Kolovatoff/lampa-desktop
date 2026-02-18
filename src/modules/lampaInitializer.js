@@ -24,20 +24,20 @@ class LampaInitializer {
 
     await mainWindow.webContents.executeJavaScript(`
       (function() {
-        const defaults = {
+        const app_init_defaults = {
           device_name: '${deviceName}',
           platform: 'electron',
           player_torrent: 'other',
           poster_size: 'w500'
         };
 
-        Object.entries(defaults).forEach(([key, value]) => {
+        Object.entries(app_init_defaults).forEach(([key, value]) => {
           if (!localStorage.getItem(key)) {
             localStorage.setItem(key, value);
           }
         });
 
-        console.log('App', Базовые настройки применены');
+        console.log('App', 'Базовые настройки применены');
       })();
     `);
   }

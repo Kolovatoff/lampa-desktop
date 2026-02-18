@@ -95,7 +95,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return await ipcRenderer.invoke("import-settings-from-file");
   },
 
-  // ============ TorrServer API ============
+  // Торрент сервер
   torrServer: {
     // Управление процессом
     start: (args) => ipcRenderer.invoke("torrserver-start", args),
@@ -130,6 +130,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     uninstall: (keepData = false) =>
       ipcRenderer.invoke("torrserver-uninstall", { keepData }),
     isInstalled: () => ipcRenderer.invoke("torrserver-is-installed"),
+  },
+
+  // Работа с папками
+  folder: {
+    open: (path) => ipcRenderer.invoke("folder-open", path),
   },
 });
 

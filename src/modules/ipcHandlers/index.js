@@ -4,13 +4,13 @@ const store = require("../storeManager");
 const { getMainWindow } = require("../windowManager");
 const { injectPlugin } = require("../pluginHandler");
 
-// Импорт обработчиков
 const registerStoreHandlers = require("./storeHandlers");
 const registerProcessHandlers = require("./processHandlers");
 const registerWindowHandlers = require("./windowHandlers");
 const { registerSettingsHandlers } = require("./settingsHandlers");
 const registerCloudHandlers = require("./cloudHandlers");
 const registerTorrServerHandlers = require("./torrServerHandlers");
+const registerFolderHandlers = require("./folderHandlers");
 
 function registerIpcHandlers() {
   // Базовые обработчики store
@@ -30,6 +30,9 @@ function registerIpcHandlers() {
 
   // Обработчики для TorrServer
   registerTorrServerHandlers();
+
+  // Обработчики для работы с папками
+  registerFolderHandlers();
 
   // Дополнительные обработчики
   ipcMain.handle("get-app-version", () => {

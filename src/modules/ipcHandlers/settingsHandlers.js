@@ -31,7 +31,7 @@ async function importSettings(settings, store, mainWindow, injectPlugin) {
 
     await mainWindow.webContents.executeJavaScript(`
       localStorage.clear();
-      Lampa.Cache.clearAll()
+      Lampa.Cache.clearAll();
 
       Object.entries(${JSON.stringify(settings.lampa)}).forEach(([key, value]) => {
           localStorage.setItem(key, value);
@@ -95,7 +95,7 @@ function registerSettingsHandlers(store, getMainWindow, injectPlugin) {
       if (canceled || !filePath) return;
 
       const localStorageData = await mainWindow.webContents.executeJavaScript(`
-        Object.assign({}, localStorage)
+        Object.assign({}, localStorage);
       `);
 
       const settings = {
