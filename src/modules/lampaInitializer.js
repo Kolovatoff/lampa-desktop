@@ -28,7 +28,9 @@ class LampaInitializer {
           device_name: '${deviceName}',
           platform: 'electron',
           player_torrent: 'other',
-          poster_size: 'w500'
+          poster_size: 'w500',
+          torrserver_url: 'http://localhost:8090',
+          torrserver_use_link: 'one'
         };
 
         Object.entries(app_init_defaults).forEach(([key, value]) => {
