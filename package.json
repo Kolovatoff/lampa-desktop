@@ -1,7 +1,7 @@
 {
   "name": "lampa-desktop",
   "productName": "Lampa",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Десктопное приложение-клиент для Lampa",
   "repository": {
     "type": "git",

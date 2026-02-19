@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.2.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.2.0...v1.2.1) (2026-02-19)
+
+### 🐛 Исправления
+
+- при изменении параметров ts, меню убегало вверх ([8aae410](https://github.com/Kolovatoff/lampa-desktop/commit/8aae410db69486558e869ce200d4c4d34509a1a4))
+
+### 📚 Документация
+
+- обновление README.md ([efac48b](https://github.com/Kolovatoff/lampa-desktop/commit/efac48b53a8d3a39c5e0ceee4ddf98144e488b2b))
+
+### ♻️ Рефакторинг
+
+- убрано указание localhost у TS. Т.к. ts не запускается на ipv6 при указании localhost ([2ea2e59](https://github.com/Kolovatoff/lampa-desktop/commit/2ea2e59f4a9cafb14bbb5333cf12b3c6070f462a))
+
 ## [1.2.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.1.1...v1.2.0) (2026-02-18)
 
 ### ✨ Новые возможности
