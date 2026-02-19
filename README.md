@@ -1,6 +1,6 @@
 # 🎬 Lampa Desktop
 
-[![GitHub All Releases](https://img.shields.io/github/downloads/Kolovatoff/lampa-desktop/total.svg?style=for-the-badge)](https://github.com/Kolovatoff/lampa-desktop/releases)
+[![GitHub All Releases](https://img.shields.io/endpoint?url=https://lampa.kolovatoff.ru/github/downloads)](https://github.com/Kolovatoff/lampa-desktop/releases)
 [![GitHub Release](https://img.shields.io/github/v/release/Kolovatoff/lampa-desktop?style=for-the-badge&logo=github)](https://github.com/Kolovatoff/lampa-desktop/releases)
 [![License](https://img.shields.io/github/license/Kolovatoff/lampa-desktop?style=for-the-badge&color=blue)](LICENSE)
 
