@@ -205,8 +205,6 @@ class TorrServerManager {
       }
 
       const defaultArgs = [
-        "--ip",
-        store.get("tsHost") || "localhost",
         "--port",
         store.get("tsPort") || "8090",
         "--path",
@@ -471,7 +469,7 @@ class TorrServerManager {
       pid: this.process?.pid || null,
       version: store.get("tsVersion") || null,
       path: store.get("tsPath") || null,
-      host: store.get("tsHost") || "localhost",
+      host: "localhost",
       port: store.get("tsPort") || 8090,
       dataDir: info.dataDir,
       executableDir: info.saveDir,

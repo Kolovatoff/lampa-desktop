@@ -10,7 +10,6 @@ const store = new Store({
     tsVersion: null,
     tsPath: null,
     tsAutoStart: false,
-    tsHost: "localhost",
     tsPort: 8090,
   },
 });

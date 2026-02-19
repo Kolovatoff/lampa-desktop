@@ -27,11 +27,10 @@ class AutoStartManager {
       }
 
       // Получаем дополнительные аргументы из настроек
-      const host = store.get("tsHost") || "localhost";
       const port = store.get("tsPort") || 8090;
 
       // Формируем аргументы для запуска
-      const startArgs = ["--ip", host, "--port", port.toString()];
+      const startArgs = ["--port", port.toString()];
 
       console.log("🚀 Автозапуск TorrServer с аргументами:", startArgs);
 
@@ -44,7 +43,7 @@ class AutoStartManager {
         // Добавляем небольшую задержку для полной инициализации
         setTimeout(() => {
           console.log(
-            "📡 TorrServer доступен по адресу: http://" + host + ":" + port,
+            "📡 TorrServer доступен по адресу: http://localhost:" + port,
           );
         }, 2000);
       } else {
