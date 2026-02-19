@@ -258,7 +258,7 @@
         },
         onChange: async function (value) {
           if (URL.canParse(value)) {
-            Lampa.Settings.update();
+            // Lampa.Settings.update();
             Lampa.Noty.show(Lampa.Lang.translate("app_settings_lampa_url_ok"));
             setTimeout(
               async () => await window.electronAPI.store.set("lampaUrl", value),
@@ -699,7 +699,7 @@
           name: Lampa.Lang.translate("app_settings_ts_autostart_field_name"),
         },
         onChange: async function (value) {
-          Lampa.Settings.update();
+          // Lampa.Settings.update();
           await window.electronAPI.store.set("tsAutoStart", value === "true");
         },
       }),
@@ -715,7 +715,7 @@
           description: Lampa.Lang.translate("app_settings_ts_port_description"),
         },
         onChange: async function (value) {
-          Lampa.Settings.update();
+          // Lampa.Settings.update();
           Lampa.Noty.show(Lampa.Lang.translate("app_settings_ts_port_ok"));
           setTimeout(
             async () => await window.electronAPI.store.set("tsPort", value),
