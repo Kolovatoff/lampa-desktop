@@ -59,7 +59,7 @@
 ## 📢 Обратная связь
 
 По вопросам, багам и предложениям — пишите в Telegram:  
-👉 [@lampa_desktop](http://t.me/lampa_desktop)
+👉 [@lampa_desktop](http://t.me/lampa_desktop) (Группа)
 
 ---
 
