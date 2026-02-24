@@ -1488,7 +1488,6 @@
 
   function initInputManager() {
     const input = new InputManager({
-      debug: true,
       hideOnKeyPress: true,
       showOnMouseMove: true,
     });
@@ -1513,7 +1512,6 @@
         },
         {
           description: "Полноэкранный режим",
-          ignoreIfInput: false,
         },
       )
       .on(
