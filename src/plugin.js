@@ -898,9 +898,28 @@
           onChange: async () => {
             const status = await window.electronAPI.torrServer.getStatus();
 
-            console.log(status);
             if (status.installed) {
               await window.electronAPI.folder.open(status.executableDir);
+            } else {
+              Lampa.Noty.show("Сначала установите TorrServer, нажав на запуск");
+            }
+          },
+        })
+        .addToQueue({
+          component: "app_settings_ts",
+          order: 4.3,
+          param: {
+            name: "ts_open_web",
+            type: "button",
+          },
+          field: {
+            name: "🌐 Открыть веб TorrServer",
+          },
+          onChange: async () => {
+            const status = await window.electronAPI.torrServer.getStatus();
+
+            if (status.installed) {
+              window.open(`http://${status.host}:${status.port}`, "_blank");
             } else {
               Lampa.Noty.show("Сначала установите TorrServer, нажав на запуск");
             }
