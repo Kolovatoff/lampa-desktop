@@ -51,8 +51,8 @@
 
 ## 🛠 Разработка
 
-Исходный код **Lampa** доступен здесь:  
-👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)
+Исходный код **Lampa** доступен здесь: 👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)  
+Документация от ИИ [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yumata/lampa-source)
 
 ---
 
