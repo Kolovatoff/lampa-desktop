@@ -994,9 +994,526 @@
     });
   }
 
+  /**
+   * Класс для управления курсором и горячими клавишами
+   */
+  class InputManager {
+    constructor(options = {}) {
+      this.cursorVisible = true;
+      this.mouseMoveTimer = null;
+      this.debug = options.debug || false;
+
+      this.keyHandlers = new Map();
+
+      this.modifiers = {
+        ctrl: false,
+        alt: false,
+        shift: false,
+        meta: false,
+      };
+
+      this.cursorSettings = {
+        hideOnKeyPress: options.hideOnKeyPress ?? true,
+        showOnMouseMove: options.showOnMouseMove ?? true,
+        hideCursorStyle: options.hideCursorStyle || "none",
+        showCursorStyle: options.showCursorStyle || "default",
+        mouseInactivityTimeout: options.mouseInactivityTimeout || 0,
+      };
+
+      this.ignoredSelectors = [
+        "input",
+        "textarea",
+        '[contenteditable="true"]',
+        "select",
+        // "button",
+        // "a",
+      ];
+
+      this.init();
+    }
+
+    init() {
+      if (this.cursorSettings.hideOnKeyPress) {
+        document.addEventListener("keydown", this.handleKeyDown.bind(this));
+      }
+
+      if (this.cursorSettings.showOnMouseMove) {
+        document.addEventListener("mousemove", this.handleMouseMove.bind(this));
+        document.addEventListener(
+          "mousedown",
+          this.handleMouseAction.bind(this),
+        );
+        document.addEventListener("mouseup", this.handleMouseAction.bind(this));
+        document.addEventListener("wheel", this.handleMouseAction.bind(this));
+      }
+
+      document.addEventListener("keyup", this.handleKeyUp.bind(this));
+      window.addEventListener("blur", this.handleWindowBlur.bind(this));
+
+      this.log("InputManager инициализирован");
+    }
+
+    hideCursor() {
+      if (!this.cursorSettings.hideOnKeyPress) return;
+
+      if (this.cursorVisible) {
+        document.body.style.cursor = this.cursorSettings.hideCursorStyle;
+        this.cursorVisible = false;
+
+        const style = document.createElement("style");
+        style.id = "input-manager-cursor-style";
+        style.textContent = `* { cursor: ${this.cursorSettings.hideCursorStyle} !important; }`;
+
+        const oldStyle = document.getElementById("input-manager-cursor-style");
+        if (oldStyle) oldStyle.remove();
+
+        document.head.appendChild(style);
+        this.log("Курсор скрыт");
+      }
+    }
+
+    showCursor() {
+      if (this.cursorVisible) return;
+
+      document.body.style.cursor = this.cursorSettings.showCursorStyle;
+      this.cursorVisible = true;
+
+      const style = document.getElementById("input-manager-cursor-style");
+      if (style) style.remove();
+
+      this.log("Курсор показан");
+    }
+
+    toggleCursor() {
+      if (this.cursorVisible) {
+        this.hideCursor();
+      } else {
+        this.showCursor();
+      }
+    }
+
+    updateCursorSettings(settings) {
+      Object.assign(this.cursorSettings, settings);
+      this.log("Настройки курсора обновлены");
+    }
+
+    /**
+     * Проверяет, находится ли фокус в игнорируемом элементе
+     */
+    isIgnoredElement(element = document.activeElement) {
+      if (!element) return false;
+
+      for (const selector of this.ignoredSelectors) {
+        if (element.matches && element.matches(selector)) {
+          return true;
+        }
+      }
+
+      // Проверяем, является ли элемент формой или частью формы
+      return element.form !== undefined;
+    }
+
+    /**
+     * Добавить селектор для игнорирования
+     */
+    addIgnoredSelector(selector) {
+      if (!this.ignoredSelectors.includes(selector)) {
+        this.ignoredSelectors.push(selector);
+        this.log(`Добавлен игнорируемый селектор: ${selector}`);
+      }
+      return this;
+    }
+
+    /**
+     * Удалить селектор из игнорируемых
+     */
+    removeIgnoredSelector(selector) {
+      const index = this.ignoredSelectors.indexOf(selector);
+      if (index !== -1) {
+        this.ignoredSelectors.splice(index, 1);
+        this.log(`Удален игнорируемый селектор: ${selector}`);
+      }
+      return this;
+    }
+
+    /**
+     * Установить список игнорируемых селекторов
+     */
+    setIgnoredSelectors(selectors) {
+      this.ignoredSelectors = [...selectors];
+      this.log("Список игнорируемых селекторов обновлен");
+      return this;
+    }
+
+    /**
+     * Подписаться на нажатие клавиши
+     * @param {string|string[]} key - клавиша или массив клавиш
+     * @param {Function} handler - обработчик
+     * @param {Object} options - опции
+     * @param {boolean} options.ignoreIfInput - игнорировать если фокус в поле ввода (по умолчанию true)
+     * @param {boolean} options.ignoreIfModal - игнорировать если открыто модальное окно
+     * @param {Function} options.condition - дополнительное условие для выполнения
+     */
+    on(key, handler, options = {}) {
+      if (Array.isArray(key)) {
+        key.forEach((k) => this.on(k, handler, options));
+        return this;
+      }
+
+      const keyId = key.toLowerCase();
+
+      if (!this.keyHandlers.has(keyId)) {
+        this.keyHandlers.set(keyId, []);
+      }
+
+      this.keyHandlers.get(keyId).push({
+        handler,
+        requireCtrl: options.ctrl || false,
+        requireAlt: options.alt || false,
+        requireShift: options.shift || false,
+        requireMeta: options.meta || false,
+        preventDefault: options.preventDefault || false,
+        description: options.description || "",
+        once: options.once || false,
+        ignoreIfInput: options.ignoreIfInput !== false,
+        ignoreIfModal: options.ignoreIfModal || false,
+        condition: options.condition || null,
+        ignoreSelectors: options.ignoreSelectors || [], // дополнительные селекторы для этого обработчика
+      });
+
+      this.log(`Добавлен обработчик для клавиши: ${keyId}`, options);
+      return this;
+    }
+
+    /**
+     * Подписаться на одноразовое нажатие
+     */
+    once(key, handler, options = {}) {
+      return this.on(key, handler, { ...options, once: true });
+    }
+
+    /**
+     * Отписаться от клавиши
+     */
+    off(key, handler) {
+      const keyId = key.toLowerCase();
+
+      if (this.keyHandlers.has(keyId)) {
+        if (handler) {
+          const handlers = this.keyHandlers.get(keyId);
+          const index = handlers.findIndex((h) => h.handler === handler);
+          if (index !== -1) {
+            handlers.splice(index, 1);
+            this.log(`Удален обработчик для клавиши: ${keyId}`);
+          }
+        } else {
+          this.keyHandlers.delete(keyId);
+          this.log(`Удалены все обработчики для клавиши: ${keyId}`);
+        }
+      }
+      return this;
+    }
+
+    /**
+     * Очистить все обработчики
+     */
+    clearAllHandlers() {
+      this.keyHandlers.clear();
+      this.log("Все обработчики удалены");
+    }
+
+    /**
+     * Получить список всех зарегистрированных горячих клавиш
+     */
+    getRegisteredKeys() {
+      const keys = [];
+      for (const [keyId, handlers] of this.keyHandlers) {
+        handlers.forEach((h) => {
+          keys.push({
+            key: keyId,
+            modifiers: {
+              ctrl: h.requireCtrl,
+              alt: h.requireAlt,
+              shift: h.requireShift,
+              meta: h.requireMeta,
+            },
+            description: h.description,
+            ignoreIfInput: h.ignoreIfInput,
+            ignoreIfModal: h.ignoreIfModal,
+          });
+        });
+      }
+      return keys;
+    }
+
+    /**
+     * Показать справку по горячим клавишам
+     */
+    showHelp() {
+      // TODO(Kolovatoff): добавить открытие modal
+      console.log("=== Зарегистрированные горячие клавиши ===");
+      const keys = this.getRegisteredKeys();
+      if (keys.length === 0) {
+        console.log("Нет зарегистрированных клавиш");
+      } else {
+        keys.forEach((k) => {
+          const modifiers = [];
+          if (k.modifiers.ctrl) modifiers.push("Ctrl");
+          if (k.modifiers.alt) modifiers.push("Alt");
+          if (k.modifiers.shift) modifiers.push("Shift");
+          if (k.modifiers.meta) modifiers.push("Meta");
+
+          const modifierStr =
+            modifiers.length > 0 ? modifiers.join("+") + "+" : "";
+          const flags = [];
+          if (k.ignoreIfInput) flags.push("🚫 input");
+          console.log(
+            `  ${modifierStr}${k.key.toUpperCase()} - ${k.description || "нет описания"} ${flags.length ? `(${flags.join(", ")})` : ""}`,
+          );
+        });
+      }
+    }
+
+    /**
+     * Проверяет, можно ли выполнить обработчик
+     */
+    canExecuteHandler(item, event) {
+      // Проверка на фокус в поле ввода
+      if (item.ignoreIfInput) {
+        const activeElement = document.activeElement;
+        if (this.isIgnoredElement(activeElement)) {
+          this.log(`Игнорируем: фокус в поле ввода (${activeElement.tagName})`);
+
+          // Дополнительно проверяем игнорируемые селекторы для этого обработчика
+          if (item.ignoreSelectors && item.ignoreSelectors.length > 0) {
+            for (const selector of item.ignoreSelectors) {
+              if (activeElement.matches && activeElement.matches(selector)) {
+                return false;
+              }
+            }
+          }
+
+          return false;
+        }
+      }
+
+      if (item.ignoreIfModal) {
+        const modal = document.querySelector(
+          '.modal[style*="display: block"], .modal.show, [role="dialog"][aria-hidden="false"]',
+        );
+        if (modal) {
+          this.log("Игнорируем: открыто модальное окно");
+          return false;
+        }
+      }
+
+      if (item.condition && typeof item.condition === "function") {
+        if (!item.condition(event)) {
+          this.log("Игнорируем: не выполнено пользовательское условие");
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    handleKeyDown(event) {
+      const code = event.code.toLowerCase();
+      const key = event.key.toLowerCase();
+
+      const ctrl = event.ctrlKey;
+      const alt = event.altKey;
+      const shift = event.shiftKey;
+      const meta = event.metaKey;
+
+      this.modifiers = { ctrl, alt, shift, meta };
+
+      this.hideCursor();
+
+      if (this.cursorSettings.mouseInactivityTimeout > 0) {
+        clearTimeout(this.mouseMoveTimer);
+      }
+
+      let handlerExecuted = false;
+
+      // Проверяем обработчики по CODE
+      if (this.keyHandlers.has(code)) {
+        handlerExecuted =
+          this.executeHandlers(code, event, ctrl, alt, shift, meta) ||
+          handlerExecuted;
+      }
+
+      // Проверяем обработчики по KEY
+      if (this.keyHandlers.has(key) && code !== key) {
+        handlerExecuted =
+          this.executeHandlers(key, event, ctrl, alt, shift, meta) ||
+          handlerExecuted;
+      }
+
+      this.log(
+        `Нажата: code=${code}, key=${key}, выполнен=${handlerExecuted}, activeElement=${document.activeElement?.tagName}`,
+      );
+    }
+
+    /**
+     * Выполнить обработчики для указанного идентификатора клавиши
+     */
+    executeHandlers(keyId, event, ctrl, alt, shift, meta) {
+      if (!this.keyHandlers.has(keyId)) return false;
+
+      const handlers = this.keyHandlers.get(keyId);
+      let executed = false;
+
+      for (let i = 0; i < handlers.length; i++) {
+        const item = handlers[i];
+
+        if (
+          item.requireCtrl === ctrl &&
+          item.requireAlt === alt &&
+          item.requireShift === shift &&
+          item.requireMeta === meta
+        ) {
+          if (!this.canExecuteHandler(item, event)) {
+            continue;
+          }
+
+          this.log(`Выполняется действие для: ${keyId}`, {
+            modifiers: this.modifiers,
+            ignoreIfInput: item.ignoreIfInput,
+          });
+
+          if (item.preventDefault) {
+            event.preventDefault();
+          }
+
+          // Вызываем обработчик с расширенной информацией
+          item.handler(event, {
+            ...this.modifiers,
+            code: event.code.toLowerCase(),
+            key: event.key.toLowerCase(),
+            activeElement: document.activeElement,
+            isInInput: this.isIgnoredElement(document.activeElement),
+          });
+
+          executed = true;
+
+          // Если одноразовый - удаляем
+          if (item.once) {
+            handlers.splice(i, 1);
+            i--;
+          }
+        }
+      }
+
+      return executed;
+    }
+
+    handleKeyUp(event) {
+      this.modifiers = {
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+        shift: event.shiftKey,
+        meta: event.metaKey,
+      };
+    }
+
+    handleMouseMove() {
+      this.showCursor();
+
+      if (this.cursorSettings.mouseInactivityTimeout > 0) {
+        clearTimeout(this.mouseMoveTimer);
+        this.mouseMoveTimer = setTimeout(() => {
+          this.hideCursor();
+        }, this.cursorSettings.mouseInactivityTimeout);
+      }
+    }
+
+    handleMouseAction() {
+      this.showCursor();
+    }
+
+    handleWindowBlur() {
+      this.showCursor();
+      this.modifiers = { ctrl: false, alt: false, shift: false, meta: false };
+    }
+
+    log(message, data = null) {
+      if (this.debug) {
+        if (data) {
+          console.log(`[InputManager] ${message}`, data);
+        } else {
+          console.log(`[InputManager] ${message}`);
+        }
+      }
+    }
+
+    /**
+     * Очистка ресурсов
+     */
+    destroy() {
+      document.removeEventListener("keydown", this.handleKeyDown);
+      document.removeEventListener("keyup", this.handleKeyUp);
+      document.removeEventListener("mousemove", this.handleMouseMove);
+      document.removeEventListener("mousedown", this.handleMouseAction);
+      document.removeEventListener("mouseup", this.handleMouseAction);
+      document.removeEventListener("wheel", this.handleMouseAction);
+      window.removeEventListener("blur", this.handleWindowBlur);
+
+      clearTimeout(this.mouseMoveTimer);
+      this.showCursor();
+      this.keyHandlers.clear();
+
+      this.log("InputManager уничтожен");
+    }
+  }
+
+  function initInputManager() {
+    const input = new InputManager({
+      debug: true,
+      hideOnKeyPress: true,
+      showOnMouseMove: true,
+    });
+
+    input
+      .on(
+        "keys",
+        () => {
+          Lampa.Search.open();
+        },
+        {
+          description: "Поиск",
+          condition: () => {
+            return !document.body.classList.contains("search--open");
+          },
+        },
+      )
+      .on(
+        "keyf",
+        () => {
+          window.electronAPI.toogleFullscreen();
+        },
+        {
+          description: "Полноэкранный режим",
+          ignoreIfInput: false,
+        },
+      )
+      .on(
+        "f4",
+        () => {
+          window.electronAPI.closeApp();
+        },
+        {
+          description: "Закрытие приложения",
+          alt: true,
+          ignoreIfInput: false,
+        },
+      );
+  }
+
   function init() {
     addQuitButton(); // Кнопка выхода в шапке
     addAppSettings(); // Настройки приложения внутри лампы
+    initInputManager();
   }
 
   if (!window.plugin_app_ready) {
