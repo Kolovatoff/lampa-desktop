@@ -68,8 +68,8 @@
         {
           "target": "rpm",
           "arch": [
-            "x86_64",
-            "aarch64"
+            "x64",
+            "arm64"
           ]
         },
         "AppImage"

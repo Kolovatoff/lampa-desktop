@@ -35,12 +35,12 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Install AppImage dependencies
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfuse2
+          sudo apt-get install -y libfuse2 rpm
 
-      - name: Build AppImage
+      - name: Build linux packages
         run: |
           yarn run build-linux
 
@@ -74,6 +74,7 @@ jobs:
           path: |
             dist/*.AppImage
             dist/*.deb
+            dist/*.rpm
             dist/latest-linux.yml
 
   build-macos:
@@ -166,6 +167,7 @@ jobs:
           files: |
             lampa-linux/*.AppImage
             lampa-linux/*.deb
+            lampa-linux/*.rpm
             lampa-linux/latest-linux.yml
             lampa-macos/*.dmg
             lampa-macos/*.blockmap
