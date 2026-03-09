@@ -82,118 +82,409 @@
 
   function addAppSettings() {
     Lampa.Lang.add({
+      // Основные настройки
       app_settings: {
         ru: "Настройки приложения",
         en: "App settings",
+        uk: "Налаштування додатку",
       },
       app_settings_fullscreen_field_name: {
         ru: "Запускать в полноэкранном режиме",
         en: "Launch in fullscreen mode",
+        uk: "Запускати в повноекранному режимі",
       },
       app_settings_autoupdate_field_name: {
         ru: "Автоматическое обновление",
         en: "Automatic update",
+        uk: "Автоматичне оновлення",
       },
       app_settings_lampa_url_placeholder: {
         ru: "Введите url лампы, начиная с http...",
         en: "Enter lamp URL starting with http...",
+        uk: "Введіть url лампи, починаючи з http...",
       },
       app_settings_lampa_url_name: {
         ru: "URL лампы",
         en: "Lamp URL",
+        uk: "URL лампи",
       },
       app_settings_lampa_url_description: {
         ru: "По-умолчанию: http://lampa.mx и не рекомендуем его менять",
         en: "Default: http://lampa.mx and we don't recommend changing it",
+        uk: "За замовчуванням: http://lampa.mx і не рекомендуємо його змінювати",
       },
       app_settings_lampa_url_ok: {
         ru: "Сохранено, ожидайте перехода...",
         en: "Saved, waiting for redirect...",
+        uk: "Збережено, очікуйте переходу...",
       },
       app_settings_lampa_url_error: {
         ru: "Неверный URL",
         en: "Invalid URL",
+        uk: "Невірний URL",
       },
       app_settings_about_field_name: {
         ru: "О приложении",
         en: "About the app",
+        uk: "Про додаток",
       },
       app_settings_about_field_description: {
         ru: "Узнать версию и др. информацию о приложении",
         en: "Check version and other app information",
+        uk: "Дізнатися версію та іншу інформацію про додаток",
       },
+
+      // TorrServer
       app_settings_ts_field_name: {
         ru: "TorrServer",
         en: "TorrServer",
+        uk: "TorrServer",
       },
       app_settings_ts_field_description: {
         ru: "Управление TorrServer",
         en: "Control TorrServer",
+        uk: "Керування TorrServer",
       },
-      app_settings_ie_field_name: {
-        ru: "Экспорт/Импорт настроек",
-        en: "Export/Import settings",
-      },
-      app_settings_ie_field_description: {
-        ru: "Резервная копия данных или перенос из другого приложения",
-        en: "Backup data or transfer from another application",
-      },
-      app_settings_ie_btn_export_title: {
-        ru: "Экспорт",
-        en: "Export",
-      },
-      app_settings_ie_btn_export_subtitle: {
-        ru: "Сохранить настройки в файл",
-        en: "Save settings to file",
-      },
-      app_settings_ie_btn_export_cloud_subtitle: {
-        ru: "Сохранить настройки в облако. Ваши данные будут зашифрованы перед отправкой с помощью пин-кода и хранятся 1 час.",
-        en: "Save settings to the cloud. Your data will be encrypted before sending using a PIN code and stored for 1 hour.",
-      },
-      app_settings_ie_btn_import_title: {
-        ru: "Импорт",
-        en: "Import",
-      },
-      app_settings_ie_btn_import_subtitle: {
-        ru: "Импортировать настройки из файла",
-        en: "Import settings from file",
-      },
-      app_settings_ie_btn_import_cloud_subtitle: {
-        ru: "Импортировать настройки из облака",
-        en: "Import settings from cloud",
-      },
-      app_settings_noty_waiting: {
-        ru: "Ожидайте...",
-        en: "Please wait...",
-      },
-      app_settings_ie_import_success: {
-        ru: "Импорт выполнен успешно",
-        en: "Import completed successfully",
-      },
-      app_settings_ie_import_error: {
-        ru: "Ошибка импорта",
-        en: "Import error",
-      },
-      app_settings_ie_invalid_pin: {
-        ru: "Неверный PIN-код",
-        en: "Invalid PIN",
-      },
-      // TS
       app_settings_ts_autostart_field_name: {
         ru: "Автозапуск при старте Lampa",
         en: "Autostart on Lampa launch",
+        uk: "Автозапуск під час старту Lampa",
       },
       app_settings_ts_port_name: {
         ru: "Порт на котором запускать TS",
         en: "Port to run TS on",
+        uk: "Порт на якому запускати TS",
       },
       app_settings_ts_port_description: {
         ru: "Если не знаете зачем это, оставьте 8090",
         en: "If you don't know why you need this, leave 8090",
+        uk: "Якщо не знаєте навіщо це, залиште 8090",
       },
       app_settings_ts_port_ok: {
         ru: "Успешно изменено, перезапустите TorrServer",
         en: "Successfully changed, restart TorrServer",
+        uk: "Успішно змінено, перезапустіть TorrServer",
+      },
+      app_settings_ts_status_name: {
+        ru: "Статус",
+        en: "Status",
+        uk: "Статус",
+      },
+      app_settings_ts_version_name: {
+        ru: "Версия",
+        en: "Version",
+        uk: "Версія",
+      },
+      app_settings_ts_status_installed_running: {
+        ru: "✅ Запущен",
+        en: "✅ Running",
+        uk: "✅ Запущено",
+      },
+      app_settings_ts_status_installed_stopped: {
+        ru: "❌ Остановлен",
+        en: "❌ Stopped",
+        uk: "❌ Зупинено",
+      },
+      app_settings_ts_status_not_installed: {
+        ru: "🚫 Не установлен",
+        en: "🚫 Not installed",
+        uk: "🚫 Не встановлено",
+      },
+      app_settings_ts_status_install_prompt: {
+        ru: "Установите TorrServer, нажав кнопку запуска",
+        en: "Install TorrServer by clicking the start button",
+        uk: "Встановіть TorrServer, натиснувши кнопку запуску",
+      },
+
+      // Кнопки управления TorrServer
+      app_settings_ts_start_name: {
+        ru: "▶️ Запуск TorrServer",
+        en: "▶️ Start TorrServer",
+        uk: "▶️ Запуск TorrServer",
+      },
+      app_settings_ts_stop_name: {
+        ru: "🛑 Остановка TorrServer",
+        en: "🛑 Stop TorrServer",
+        uk: "🛑 Зупинка TorrServer",
+      },
+      app_settings_ts_restart_name: {
+        ru: "🔁 Перезапуск TorrServer",
+        en: "🔁 Restart TorrServer",
+        uk: "🔁 Перезапуск TorrServer",
+      },
+      app_settings_ts_check_update_name: {
+        ru: "🔍 Проверка обновлений TorrServer",
+        en: "🔍 Check TorrServer updates",
+        uk: "🔍 Перевірка оновлень TorrServer",
+      },
+      app_settings_ts_open_path_name: {
+        ru: "📂 Открыть папку TorrServer",
+        en: "📂 Open TorrServer folder",
+        uk: "📂 Відкрити папку TorrServer",
+      },
+      app_settings_ts_open_web_name: {
+        ru: "🌐 Открыть веб TorrServer",
+        en: "🌐 Open TorrServer web",
+        uk: "🌐 Відкрити веб TorrServer",
+      },
+      app_settings_ts_uninstall_name: {
+        ru: "🗑️ Удалить TorrServer (полностью)",
+        en: "🗑️ Uninstall TorrServer (completely)",
+        uk: "🗑️ Видалити TorrServer (повністю)",
+      },
+      app_settings_ts_uninstall_keep_data_name: {
+        ru: "💾 Удалить TorrServer (сохранить данные)",
+        en: "💾 Uninstall TorrServer (keep data)",
+        uk: "💾 Видалити TorrServer (зберегти дані)",
+      },
+
+      // Статусы загрузки TorrServer
+      app_settings_ts_start_loading: {
+        ru: "Выполняется запуск TorrServer",
+        en: "Starting TorrServer",
+        uk: "Виконується запуск TorrServer",
+      },
+      app_settings_ts_download_loading: {
+        ru: "Выполняется скачивание и запуск TorrServer",
+        en: "Downloading and starting TorrServer",
+        uk: "Виконується завантаження та запуск TorrServer",
+      },
+      app_settings_ts_stop_loading: {
+        ru: "Остановка TorrServer",
+        en: "Stopping TorrServer",
+        uk: "Зупинка TorrServer",
+      },
+      app_settings_ts_restart_loading: {
+        ru: "Перезапуск TorrServer",
+        en: "Restarting TorrServer",
+        uk: "Перезапуск TorrServer",
+      },
+      app_settings_ts_check_update_loading: {
+        ru: "Проверка обновлений TorrServer",
+        en: "Checking TorrServer updates",
+        uk: "Перевірка оновлень TorrServer",
+      },
+      app_settings_ts_update_loading: {
+        ru: "Обновление TorrServer",
+        en: "Updating TorrServer",
+        uk: "Оновлення TorrServer",
+      },
+      app_settings_ts_uninstall_loading: {
+        ru: "Выполняется ПОЛНОЕ удаление TorrServer...",
+        en: "Performing COMPLETE uninstall of TorrServer...",
+        uk: "Виконується ПОВНЕ видалення TorrServer...",
+      },
+      app_settings_ts_uninstall_keep_data_loading: {
+        ru: "Выполняется удаление TorrServer...",
+        en: "Uninstalling TorrServer...",
+        uk: "Виконується видалення TorrServer...",
+      },
+      app_settings_ts_install_prompt: {
+        ru: "Сначала установите TorrServer, нажав на запуск",
+        en: "First install TorrServer by clicking start",
+        uk: "Спочатку встановіть TorrServer, натиснувши на запуск",
+      },
+
+      // Обновления TorrServer
+      app_settings_ts_update_found_title: {
+        ru: "Найдено обновление TorrServer",
+        en: "TorrServer update found",
+        uk: "Знайдено оновлення TorrServer",
+      },
+      app_settings_ts_update_found_message: {
+        ru: "Найдено обновление TorrServer.",
+        en: "TorrServer update found.",
+        uk: "Знайдено оновлення TorrServer.",
+      },
+      app_settings_ts_update_installed: {
+        ru: "Установлена: {current_version}",
+        en: "Installed: {current_version}",
+        uk: "Встановлена: {current_version}",
+      },
+      app_settings_ts_update_latest: {
+        ru: "Последняя версия: {latest_version}",
+        en: "Latest version: {latest_version}",
+        uk: "Остання версія: {latest_version}",
+      },
+      app_settings_ts_update_button: {
+        ru: "Обновить",
+        en: "Update",
+        uk: "Оновити",
+      },
+      app_settings_ts_update_success: {
+        ru: "Успешно обновлено",
+        en: "Successfully updated",
+        uk: "Успішно оновлено",
+      },
+      app_settings_ts_update_no_updates: {
+        ru: "Обновлений нет, у вас последняя версия",
+        en: "No updates, you have the latest version",
+        uk: "Оновлень немає, у вас остання версія",
+      },
+
+      // Импорт/Экспорт
+      app_settings_ie_field_name: {
+        ru: "Экспорт/Импорт настроек",
+        en: "Export/Import settings",
+        uk: "Експорт/Імпорт налаштувань",
+      },
+      app_settings_ie_field_description: {
+        ru: "Резервная копия данных или перенос из другого приложения",
+        en: "Backup data or transfer from another application",
+        uk: "Резервна копія даних або перенесення з іншого додатку",
+      },
+      app_settings_ie_btn_export_title: {
+        ru: "Экспорт",
+        en: "Export",
+        uk: "Експорт",
+      },
+      app_settings_ie_btn_export_subtitle: {
+        ru: "Сохранить настройки в файл",
+        en: "Save settings to file",
+        uk: "Зберегти налаштування у файл",
+      },
+      app_settings_ie_btn_export_cloud_subtitle: {
+        ru: "Сохранить настройки в облако. Ваши данные будут зашифрованы перед отправкой с помощью пин-кода и хранятся 1 час.",
+        en: "Save settings to the cloud. Your data will be encrypted before sending using a PIN code and stored for 1 hour.",
+        uk: "Зберегти налаштування в хмару. Ваші дані будуть зашифровані перед відправкою за допомогою пін-коду та зберігаються 1 годину.",
+      },
+      app_settings_ie_btn_import_title: {
+        ru: "Импорт",
+        en: "Import",
+        uk: "Імпорт",
+      },
+      app_settings_ie_btn_import_subtitle: {
+        ru: "Импортировать настройки из файла",
+        en: "Import settings from file",
+        uk: "Імпортувати налаштування з файлу",
+      },
+      app_settings_ie_btn_import_cloud_subtitle: {
+        ru: "Импортировать настройки из облака",
+        en: "Import settings from cloud",
+        uk: "Імпортувати налаштування з хмари",
+      },
+      app_settings_noty_waiting: {
+        ru: "Ожидайте...",
+        en: "Please wait...",
+        uk: "Зачекайте...",
+      },
+      app_settings_ie_import_success: {
+        ru: "Импорт выполнен успешно",
+        en: "Import completed successfully",
+        uk: "Імпорт виконано успішно",
+      },
+      app_settings_ie_import_error: {
+        ru: "Ошибка импорта",
+        en: "Import error",
+        uk: "Помилка імпорту",
+      },
+      app_settings_ie_invalid_pin: {
+        ru: "Неверный PIN-код",
+        en: "Invalid PIN",
+        uk: "Невірний PIN-код",
+      },
+
+      // Разделители
+      app_settings_separator_main_name: {
+        ru: "Основные",
+        en: "Main",
+        uk: "Основні",
+      },
+      app_settings_separator_other_name: {
+        ru: "Остальные",
+        en: "Other",
+        uk: "Інші",
+      },
+      app_settings_ts_separator_main_title: {
+        ru: "Управление",
+        en: "Management",
+        uk: "Керування",
+      },
+      app_settings_ts_separator_settings_title: {
+        ru: "Настройки",
+        en: "Settings",
+        uk: "Налаштування",
+      },
+      app_settings_ts_separator_danger_title: {
+        ru: "Осторожно!",
+        en: "Caution!",
+        uk: "Обережно!",
+      },
+
+      // Облачный импорт/экспорт
+      app_settings_ie_separator_cloud_title: {
+        ru: "Облако",
+        en: "Cloud",
+        uk: "Хмара",
+      },
+      app_settings_ie_separator_local_title: {
+        ru: "Локально",
+        en: "Local",
+        uk: "Локально",
+      },
+      app_settings_ie_modal_import_cloud: {
+        ru: "Импорт настроек из облака",
+        en: "Import settings from cloud",
+        uk: "Імпорт налаштувань з хмари",
+      },
+      app_settings_ie_modal_enter_id: {
+        ru: "Введите ID",
+        en: "Enter ID",
+        uk: "Введіть ID",
+      },
+      app_settings_ie_modal_enter_pin_title: {
+        ru: "Введите PIN-код",
+        en: "Enter PIN code",
+        uk: "Введіть PIN-код",
+      },
+
+      // О приложении
+      app_about_title: {
+        ru: "Не официальное приложение-клиент для Lampa.",
+        en: "Unofficial client application for Lampa.",
+        uk: "Неофіційний додаток-клієнт для Lampa.",
+      },
+      app_about_version_app: {
+        ru: "Версия приложения: {current_version}",
+        en: "App version: {current_version}",
+        uk: "Версія додатку: {current_version}",
+      },
+      app_about_version_latest: {
+        ru: "Последняя версия: {latest_version}",
+        en: "Latest version: {latest_version}",
+        uk: "Остання версія: {latest_version}",
+      },
+      app_about_version_lampa: {
+        ru: "Версия Lampa: {lampa_version}",
+        en: "Lampa version: {lampa_version}",
+        uk: "Версія Lampa: {lampa_version}",
+      },
+      app_about_github: {
+        ru: "GitHub",
+        en: "GitHub",
+        uk: "GitHub",
+      },
+      app_about_loading: {
+        ru: "Загружаю данные...",
+        en: "Loading data...",
+        uk: "Завантажую дані...",
+      },
+
+      // Горячие клавиши
+      hotkey_search: {
+        ru: "Поиск",
+        en: "Search",
+        uk: "Пошук",
+      },
+      hotkey_fullscreen: {
+        ru: "Полноэкранный режим",
+        en: "Fullscreen mode",
+        uk: "Повноекранний режим",
+      },
+      hotkey_close: {
+        ru: "Закрытие приложения",
+        en: "Close application",
+        uk: "Закриття додатку",
       },
     });
 
@@ -203,10 +494,15 @@
       icon: settings_app_icon,
       before: "account",
     });
+
     Lampa.Template.add(
       "settings_app_settings_ts",
-      '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsStatus"><div class="settings-param__name">Статус</div><div class="settings-param__descr">🔄</div></div>' +
-        '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsVersion"><div class="settings-param__name">Версия</div><div class="settings-param__descr">🔄</div></div>',
+      '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsStatus"><div class="settings-param__name">' +
+        Lampa.Lang.translate("app_settings_ts_status_name") +
+        '</div><div class="settings-param__descr">🔄</div></div>' +
+        '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsVersion"><div class="settings-param__name">' +
+        Lampa.Lang.translate("app_settings_ts_version_name") +
+        '</div><div class="settings-param__descr">🔄</div></div>',
     );
 
     const settingsManager = new SettingsManager("app_settings");
@@ -286,7 +582,10 @@
             ),
           },
           onChange: function () {
-            Lampa.Loading.start(() => {}, "Загружаю данные...");
+            Lampa.Loading.start(
+              () => {},
+              Lampa.Lang.translate("app_about_loading"),
+            );
             const network = new Lampa.Reguest();
             network.silent(
               "https://api.github.com/repos/Kolovatoff/lampa-desktop/releases/latest",
@@ -299,26 +598,40 @@
                     Lampa.Template.add(
                       "about_modal",
                       `<div class="app-modal-about">
-                        Не официальное приложение-клиент для Lampa.
+                        ` +
+                        Lampa.Lang.translate("app_about_title") +
+                        `
                         <ul>
-                            <li>Версия приложения: {current_version}</li>
-                            <li>Последняя версия: {latest_version}</li>
-                            <li>Версия Lampa: {lampa_version}</li>
+                            <li>` +
+                        Lampa.Lang.translate("app_about_version_app").replace(
+                          "{current_version}",
+                          current_version,
+                        ) +
+                        `</li>
+                            <li>` +
+                        Lampa.Lang.translate(
+                          "app_about_version_latest",
+                        ).replace("{latest_version}", latest_version) +
+                        `</li>
+                            <li>` +
+                        Lampa.Lang.translate("app_about_version_lampa").replace(
+                          "{lampa_version}",
+                          Lampa.Platform.version("app"),
+                        ) +
+                        `</li>
                         </ul>
                         <div class="simple-button selector github">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                             </svg>
-                            <span>GitHub</span>
+                            <span>` +
+                        Lampa.Lang.translate("app_about_github") +
+                        `</span>
                         </div>
                       </div>`,
                     );
 
-                    let about_html = Lampa.Template.get("about_modal", {
-                      current_version: current_version,
-                      latest_version: latest_version,
-                      lampa_version: Lampa.Platform.version("app"),
-                    });
+                    let about_html = Lampa.Template.get("about_modal", {});
                     about_html.find(".github").on("hover:enter", function () {
                       window.open(
                         "https://github.com/Kolovatoff/lampa-desktop",
@@ -366,7 +679,7 @@
             type: "title",
           },
           field: {
-            name: "Основные",
+            name: Lampa.Lang.translate("app_settings_separator_main_name"),
           },
         })
         .addToQueue({
@@ -400,11 +713,11 @@
         .addToQueue({
           order: 8,
           param: {
-            name: "app_settings_separator_main",
+            name: "app_settings_separator_other",
             type: "title",
           },
           field: {
-            name: "Остальные",
+            name: Lampa.Lang.translate("app_settings_separator_other_name"),
           },
         })
         .addToQueue({
@@ -424,7 +737,9 @@
               title: Lampa.Lang.translate("app_settings_ie_field_name"),
               items: [
                 {
-                  title: "Облако",
+                  title: Lampa.Lang.translate(
+                    "app_settings_ie_separator_cloud_title",
+                  ),
                   separator: true,
                 },
                 {
@@ -446,7 +761,9 @@
                   action: "i-cloud",
                 },
                 {
-                  title: "Локально",
+                  title: Lampa.Lang.translate(
+                    "app_settings_ie_separator_local_title",
+                  ),
                   separator: true,
                 },
                 {
@@ -484,11 +801,20 @@
                     // Функция для показа модального окна ввода 10-значного кода
                     async function showTenDigitModal() {
                       return new Promise((resolve) => {
-                        let html = $(`
+                        let html = $(
+                          `
                       <div class="account-modal-split">
                         <div class="account-modal-split__info">
-                          <div class="account-modal-split__title">Импорт настроек из облака</div>
-                          <div class="account-modal-split__text">Введите ID</div>
+                          <div class="account-modal-split__title">` +
+                            Lampa.Lang.translate(
+                              "app_settings_ie_modal_import_cloud",
+                            ) +
+                            `</div>
+                          <div class="account-modal-split__text">` +
+                            Lampa.Lang.translate(
+                              "app_settings_ie_modal_enter_id",
+                            ) +
+                            `</div>
                           <div class="account-modal-split__code">
                             ${Array(10).fill('<div class="account-modal-split__code-num"><span>-</span></div>').join("")}
                           </div>
@@ -496,7 +822,8 @@
                             <div class="simple-keyboard"></div>
                           </div>
                         </div>
-                      </div>`);
+                      </div>`,
+                        );
 
                         let nums = html.find(".account-modal-split__code-num");
                         let keyboard;
@@ -612,7 +939,9 @@
                         Lampa.Input.edit(
                           {
                             free: true,
-                            title: "Введите PIN-код",
+                            title: Lampa.Lang.translate(
+                              "app_settings_ie_modal_enter_pin_title",
+                            ),
                             nosave: true,
                             value: "",
                             layout: "nums",
@@ -732,7 +1061,7 @@
             type: "title",
           },
           field: {
-            name: "Управление",
+            name: Lampa.Lang.translate("app_settings_ts_separator_main_title"),
           },
         })
         .addToQueue({
@@ -743,16 +1072,19 @@
             type: "button",
           },
           field: {
-            name: "▶️ Запуск TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_start_name"),
           },
           onChange: async () => {
             const status = await window.electronAPI.torrServer.getStatus();
             if (status.installed) {
-              Lampa.Loading.start(() => {}, "Выполняется запуск TorrServer");
+              Lampa.Loading.start(
+                () => {},
+                Lampa.Lang.translate("app_settings_ts_start_loading"),
+              );
             } else {
               Lampa.Loading.start(
                 () => {},
-                "Выполняется скачивание и запуск TorrServer",
+                Lampa.Lang.translate("app_settings_ts_download_loading"),
               );
             }
 
@@ -780,10 +1112,13 @@
             type: "button",
           },
           field: {
-            name: "🛑 Остановка TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_stop_name"),
           },
           onChange: async () => {
-            Lampa.Loading.start(() => {}, "Остановка TorrServer");
+            Lampa.Loading.start(
+              () => {},
+              Lampa.Lang.translate("app_settings_ts_stop_loading"),
+            );
             const result = await window.electronAPI.torrServer.stop();
             Lampa.Loading.stop();
             updateTsStatus();
@@ -800,10 +1135,13 @@
             type: "button",
           },
           field: {
-            name: "🔁 Перезапуск TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_restart_name"),
           },
           onChange: async () => {
-            Lampa.Loading.start(() => {}, "Перезапуск TorrServer");
+            Lampa.Loading.start(
+              () => {},
+              Lampa.Lang.translate("app_settings_ts_restart_loading"),
+            );
 
             const tsPort = await window.electronAPI.store.get("tsPort");
             const result = await window.electronAPI.torrServer.restart([
@@ -828,33 +1166,52 @@
             type: "button",
           },
           field: {
-            name: "🔍 Проверка обновлений TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_check_update_name"),
           },
           onChange: async () => {
-            Lampa.Loading.start(() => {}, "Проверка обновлений TorrServer");
+            Lampa.Loading.start(
+              () => {},
+              Lampa.Lang.translate("app_settings_ts_check_update_loading"),
+            );
             const result = await window.electronAPI.torrServer.checkUpdate();
             // Создаем модальное окно если есть обновление
             if (result.hasUpdate) {
               Lampa.Template.add(
                 "ts_update_modal",
                 `<div class="app-modal-ts-update">
-                        Найдено обновление TorrServer.
+                        ` +
+                  Lampa.Lang.translate("app_settings_ts_update_found_message") +
+                  `
                         <ul>
-                            <li>Установлена: {current_version}</li>
-                            <li>Последняя версия: {latest_version}</li>
+                            <li>` +
+                  Lampa.Lang.translate(
+                    "app_settings_ts_update_installed",
+                  ).replace("{current_version}", result.current) +
+                  `</li>
+                            <li>` +
+                  Lampa.Lang.translate("app_settings_ts_update_latest").replace(
+                    "{latest_version}",
+                    result.latest,
+                  ) +
+                  `</li>
                         </ul>
-                        <div class="simple-button selector ts_update">Обновить</div>
+                        <div class="simple-button selector ts_update">` +
+                  Lampa.Lang.translate("app_settings_ts_update_button") +
+                  `</div>
                       </div>`,
               );
 
-              let ts_update_modal_html = Lampa.Template.get("ts_update_modal", {
-                current_version: result.current,
-                latest_version: result.latest,
-              });
+              let ts_update_modal_html = Lampa.Template.get(
+                "ts_update_modal",
+                {},
+              );
               ts_update_modal_html
                 .find(".ts_update")
                 .on("hover:enter", async function () {
-                  Lampa.Loading.start(() => {}, "Обновление TorrServer");
+                  Lampa.Loading.start(
+                    () => {},
+                    Lampa.Lang.translate("app_settings_ts_update_loading"),
+                  );
                   const result = await window.electronAPI.torrServer.update();
                   Lampa.Loading.stop();
                   Lampa.Modal.close();
@@ -862,13 +1219,15 @@
                   updateTsStatus();
                   Lampa.Noty.show(
                     result.success
-                      ? "Успешно обновлено"
+                      ? Lampa.Lang.translate("app_settings_ts_update_success")
                       : "Ошибка: " + result.message,
                   );
                 });
 
               Lampa.Modal.open({
-                title: "Найдено обновление TorrServer",
+                title: Lampa.Lang.translate(
+                  "app_settings_ts_update_found_title",
+                ),
                 html: ts_update_modal_html,
                 size: "small",
                 onBack: function () {
@@ -880,7 +1239,9 @@
               // И убеждаемся, что фокус на модальном окне
               Lampa.Controller.toggle("modal");
             } else {
-              Lampa.Noty.show("Обновлений нет, у вас последняя версия");
+              Lampa.Noty.show(
+                Lampa.Lang.translate("app_settings_ts_update_no_updates"),
+              );
               Lampa.Loading.stop();
             }
           },
@@ -893,7 +1254,7 @@
             type: "button",
           },
           field: {
-            name: "📂 Открыть папку TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_open_path_name"),
           },
           onChange: async () => {
             const status = await window.electronAPI.torrServer.getStatus();
@@ -901,7 +1262,9 @@
             if (status.installed) {
               await window.electronAPI.folder.open(status.executableDir);
             } else {
-              Lampa.Noty.show("Сначала установите TorrServer, нажав на запуск");
+              Lampa.Noty.show(
+                Lampa.Lang.translate("app_settings_ts_install_prompt"),
+              );
             }
           },
         })
@@ -913,7 +1276,7 @@
             type: "button",
           },
           field: {
-            name: "🌐 Открыть веб TorrServer",
+            name: Lampa.Lang.translate("app_settings_ts_open_web_name"),
           },
           onChange: async () => {
             const status = await window.electronAPI.torrServer.getStatus();
@@ -921,8 +1284,34 @@
             if (status.installed) {
               window.open(`http://${status.host}:${status.port}`, "_blank");
             } else {
-              Lampa.Noty.show("Сначала установите TorrServer, нажав на запуск");
+              Lampa.Noty.show(
+                Lampa.Lang.translate("app_settings_ts_install_prompt"),
+              );
             }
+          },
+        })
+        .addToQueue({
+          order: 5,
+          param: {
+            name: "app_settings_ts_separator_settings",
+            type: "title",
+          },
+          field: {
+            name: Lampa.Lang.translate(
+              "app_settings_ts_separator_settings_title",
+            ),
+          },
+        })
+        .addToQueue({
+          order: 9,
+          param: {
+            name: "app_settings_ts_separator_danger",
+            type: "title",
+          },
+          field: {
+            name: Lampa.Lang.translate(
+              "app_settings_ts_separator_danger_title",
+            ),
           },
         })
         .addToQueue({
@@ -933,10 +1322,12 @@
             type: "button",
           },
           field: {
-            name: "🗑️ Удалить TorrServer (полностью)",
+            name: Lampa.Lang.translate("app_settings_ts_uninstall_name"),
           },
           onChange: async () => {
-            Lampa.Noty.show("Выполняется ПОЛНОЕ удаление TorrServer...");
+            Lampa.Noty.show(
+              Lampa.Lang.translate("app_settings_ts_uninstall_loading"),
+            );
             const result = await window.electronAPI.torrServer.uninstall();
             updateTsStatus();
             Lampa.Noty.show(
@@ -952,35 +1343,21 @@
             type: "button",
           },
           field: {
-            name: "💾 Удалить TorrServer (сохранить данные)",
+            name: Lampa.Lang.translate(
+              "app_settings_ts_uninstall_keep_data_name",
+            ),
           },
           onChange: async () => {
-            Lampa.Noty.show("Выполняется удаление TorrServer...");
+            Lampa.Noty.show(
+              Lampa.Lang.translate(
+                "app_settings_ts_uninstall_keep_data_loading",
+              ),
+            );
             const result = await window.electronAPI.torrServer.uninstall(true);
             updateTsStatus();
             Lampa.Noty.show(
               result.success ? result.message : "Ошибка: " + result.message,
             );
-          },
-        })
-        .addToQueue({
-          order: 5,
-          param: {
-            name: "app_settings_ts_separator_danger",
-            type: "title",
-          },
-          field: {
-            name: "Настройки",
-          },
-        })
-        .addToQueue({
-          order: 9,
-          param: {
-            name: "app_settings_ts_separator_danger",
-            type: "title",
-          },
-          field: {
-            name: "Осторожно!",
           },
         })
         .apply();
@@ -993,16 +1370,20 @@
           .text(
             status.version !== null
               ? status.version
-              : "Установите TorrServer, нажав кнопку запуска",
+              : Lampa.Lang.translate("app_settings_ts_status_install_prompt"),
           );
         $('[data-name="app_settings_ts_tsStatus"]')
           .find(".settings-param__descr")
           .text(
             status.installed
               ? status.running
-                ? "✅ Запущен"
-                : "❌ Остановлен"
-              : "🚫 Не установлен",
+                ? Lampa.Lang.translate(
+                    "app_settings_ts_status_installed_running",
+                  )
+                : Lampa.Lang.translate(
+                    "app_settings_ts_status_installed_stopped",
+                  )
+              : Lampa.Lang.translate("app_settings_ts_status_not_installed"),
           );
       });
     }
@@ -1499,7 +1880,7 @@
           Lampa.Search.open();
         },
         {
-          description: "Поиск",
+          description: Lampa.Lang.translate("hotkey_search"),
           condition: () => {
             return !document.body.classList.contains("search--open");
           },
@@ -1511,7 +1892,7 @@
           window.electronAPI.toogleFullscreen();
         },
         {
-          description: "Полноэкранный режим",
+          description: Lampa.Lang.translate("hotkey_fullscreen"),
         },
       )
       .on(
@@ -1520,7 +1901,7 @@
           window.electronAPI.closeApp();
         },
         {
-          description: "Закрытие приложения",
+          description: Lampa.Lang.translate("hotkey_close"),
           alt: true,
           ignoreIfInput: false,
         },
