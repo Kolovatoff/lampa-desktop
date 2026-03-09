@@ -65,6 +65,13 @@
             "arm64"
           ]
         },
+        {
+          "target": "rpm",
+          "arch": [
+            "x86_64",
+            "aarch64"
+          ]
+        },
         "AppImage"
       ],
       "icon": "assets/linux.icns",
