@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.3.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.2.1...v1.3.0) (2026-03-09)
+
+### ✨ Новые возможности
+
+- добавлен inputManager для управления горячими клавишами и курсором ([3aa6b16](https://github.com/Kolovatoff/lampa-desktop/commit/3aa6b16902e2934b3187df63a2f9017c16b8c872))
+- удаление микрофона на формах ввода ([6baf960](https://github.com/Kolovatoff/lampa-desktop/commit/6baf96007c8e1632057cdf6b617edb7b945c3eff))
+
+### 🐛 Исправления
+
+- исправления под MacOS ([a3a29a1](https://github.com/Kolovatoff/lampa-desktop/commit/a3a29a1e10309e84e153073a59280e1f2031d8ba))
+- отключение горячей клавиши полноэкранного режима при вводе ([dd0790a](https://github.com/Kolovatoff/lampa-desktop/commit/dd0790a2d4a8f94fcf51431b2958d45e94fd430f))
+
+### 📚 Документация
+
+- добавлена ссылка на документацию от ИИ ([bcbeb8a](https://github.com/Kolovatoff/lampa-desktop/commit/bcbeb8aa9e9203cc79c596a615400d29fd50c6f6))
+- обновление бейджа скачиваний, без учета файлов обновлений ([e6eb174](https://github.com/Kolovatoff/lampa-desktop/commit/e6eb174122fa19ce2586f8b0a3e7fa820f4d7d52))
+- обновление README.md ([0020d48](https://github.com/Kolovatoff/lampa-desktop/commit/0020d48ffb9102de0e572c3ed9a8a7514e819ef3))
+
+### ♻️ Рефакторинг
+
+- базовая защита spawn ([370ee48](https://github.com/Kolovatoff/lampa-desktop/commit/370ee481cb5f028527a9ea83382467f921050bbb))
+- добавлена кнопка открытия веб-интерфейса torrserver ([3e99de0](https://github.com/Kolovatoff/lampa-desktop/commit/3e99de0b1e438dd3fb25c4980db054912f651906))
+- частичный перевод приложения ([f821927](https://github.com/Kolovatoff/lampa-desktop/commit/f821927b5898451345c6300ce7229bdfae26ac92))
+
+### 📦 Сборка
+
+- добавление rpm для linux ([651407b](https://github.com/Kolovatoff/lampa-desktop/commit/651407ba13765acb9412e472ce352ba8f27688ea))
+- добавление rpm пакетов ([f11bad6](https://github.com/Kolovatoff/lampa-desktop/commit/f11bad6196855e0877595d78a6fb2eb4ee26b7b5))
+
 ## [1.2.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.2.0...v1.2.1) (2026-02-19)
 
 ### 🐛 Исправления
