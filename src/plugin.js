@@ -486,6 +486,11 @@
         en: "Close application",
         uk: "Закриття додатку",
       },
+      hotkey_menu: {
+        ru: "Открыть/закрыть меню",
+        en: "Open/close menu",
+        uk: "Відкрити / закрити меню",
+      },
     });
 
     Lampa.SettingsApi.addComponent({
@@ -1904,6 +1909,16 @@
           description: Lampa.Lang.translate("hotkey_close"),
           alt: true,
           ignoreIfInput: false,
+        },
+      )
+      // открытие/закрытие меню
+      .on(
+        "keym",
+        () => {
+          Lampa.Menu.toggle();
+        },
+        {
+          description: Lampa.Lang.translate("hotkey_menu"),
         },
       );
   }
