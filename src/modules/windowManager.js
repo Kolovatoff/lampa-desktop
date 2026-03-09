@@ -47,9 +47,10 @@ function createWindow() {
       contextIsolation: true,
       enableRemoteModule: false,
       sandbox: false,
+      contextMenu: false,
     },
     show: false,
-    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
+    titleBarStyle: "default",
     webSecurity: true,
     fullscreen: Boolean(store.get("fullscreen")),
   };
@@ -206,9 +207,17 @@ function setupNavigationHandlers(mainWindow) {
 
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     const parsedUrl = new URL(navigationUrl);
-    if (parsedUrl.origin !== "file://") {
-      event.preventDefault();
+
+    // исправление запуска плееров на MacOS
+    const allowedProtocols = ["mpv:", "iina:", "infuse:"];
+    if (allowedProtocols.includes(parsedUrl.protocol)) {
+      return;
     }
+
+    if (parsedUrl.origin === "file://") {
+      return;
+    }
+    event.preventDefault();
   });
 }
 
