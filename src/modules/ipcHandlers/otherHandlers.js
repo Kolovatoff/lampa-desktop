@@ -2,6 +2,11 @@ const { ipcMain } = require("electron");
 const vlcFinder = require("../vlcFinder");
 
 function registerOtherHandlers(getMainWindow) {
+  ipcMain.handle("get-app-version", () => {
+    const { app } = require("electron");
+    return app.getVersion();
+  });
+
   ipcMain.handle("find-player", async () => {
     try {
       const mainWindow = getMainWindow();
