@@ -1,5 +1,6 @@
 // modules/lampaInitializer.js
 const os = require("os");
+const { existsSync } = require("fs");
 const vlcFinder = require("./vlcFinder");
 
 class LampaInitializer {
@@ -11,7 +12,7 @@ class LampaInitializer {
       await this.initializeBasicSettings(mainWindow);
 
       // Поиск и сохранение пути к VLC
-      await this.initializeVLCPath(mainWindow);
+      await this.initializePlayerPath(mainWindow);
 
       console.log("✅ Lampa инициализирована");
     } catch (error) {
@@ -20,7 +21,7 @@ class LampaInitializer {
   }
 
   async initializeBasicSettings(mainWindow) {
-    const deviceName = `Lampa ${os.hostname()}`;
+    const deviceName = `${os.hostname()}`;
 
     await mainWindow.webContents.executeJavaScript(`
       (function() {
@@ -44,11 +45,20 @@ class LampaInitializer {
     `);
   }
 
-  async initializeVLCPath(mainWindow) {
+  async initializePlayerPath(mainWindow) {
     const existingPath = await vlcFinder.checkLocalStoragePath(mainWindow);
 
-    if (existingPath && vlcFinder.validateVLC(existingPath)) {
-      console.log(`✅ Путь к VLC уже есть: ${existingPath}`);
+    if (existingPath && existsSync(existingPath)) {
+      console.log(`✅ Путь к плееру уже есть: ${existingPath}`);
+      return;
+    }
+
+    const player_torrent = await mainWindow.webContents.executeJavaScript(`
+      localStorage.getItem('player_torrent');
+    `);
+
+    // если выбран внутренний плеер принудительно, то не искать внешний
+    if (player_torrent === "inner") {
       return;
     }
 
