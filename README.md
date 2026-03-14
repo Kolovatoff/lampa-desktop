@@ -16,7 +16,7 @@
 ## 🔧 Возможности
 
 ✅ Поддержка **Windows, Linux, macOS**  
-✅ Синхронизация с **VLC Timecode** (просмотр в VLC)  **(кроме macos)**  
+✅ Синхронизация с **VLC Timecode** (просмотр в VLC) **(кроме macos)**  
 ✅ Динамическая загрузка Lampa с `lampa.mx` или кастомного URL  
 ✅ Экспорт/импорт конфигурации между устройствами  
 ✅ Встроенные настройки: смена URL, полноэкранный режим и др.  
@@ -51,6 +51,7 @@
 ---
 
 ## 🛠 Разработка
+
 Документация по этому проекту от ИИ [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Kolovatoff/lampa-desktop)
 
 Исходный код самой **Lampa** доступен здесь: 👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)

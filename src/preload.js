@@ -132,10 +132,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     isInstalled: () => ipcRenderer.invoke("torrserver-is-installed"),
   },
 
+  // Разные
   // Работа с папками
   folder: {
     open: (path) => ipcRenderer.invoke("folder-open", path),
   },
+  // Поиск плеера
+  findPlayer: (args) => ipcRenderer.invoke("find-player", args),
 });
 
 console.log("Preload script loaded successfully");

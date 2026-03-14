@@ -438,6 +438,18 @@
         uk: "Введіть PIN-код",
       },
 
+      // Плееры
+      app_settings_player_find: {
+        ru: "Поиск плеера",
+        en: "Player search",
+        uk: "Пошук плеєра",
+      },
+      app_settings_player_find_description: {
+        ru: "Нажмите, чтобы найти установленный плеер VLC в вашей системе автоматически",
+        en: "Click to find the installed VLC player in your system automatically.",
+        uk: "Натисніть, щоб автоматично знайти встановлений програвач VLC у вашій системі",
+      },
+
       // О приложении
       app_about_title: {
         ru: "Не официальное приложение-клиент для Lampa.",
@@ -486,6 +498,12 @@
         en: "Close application",
         uk: "Закриття додатку",
       },
+
+      app_error: {
+        ru: "Ошибка",
+        en: "Error",
+        uk: "Помилка",
+      },
     });
 
     Lampa.SettingsApi.addComponent({
@@ -506,6 +524,41 @@
     );
 
     const settingsManager = new SettingsManager("app_settings");
+
+    Lampa.SettingsApi.addParam({
+      component: "player",
+      param: {
+        name: "player_find",
+        type: "button",
+      },
+      field: {
+        name: Lampa.Lang.translate("app_settings_player_find"),
+        description: Lampa.Lang.translate(
+          "app_settings_player_find_description",
+        ),
+      },
+      onChange: async () => {
+        Lampa.Loading.start(
+          () => {},
+          `${Lampa.Lang.translate("app_settings_player_find")}...`,
+        );
+        const result = await window.electronAPI.findPlayer();
+        Lampa.Loading.stop();
+        // Lampa.Settings.create("player", {});
+        Lampa.Settings.update();
+        Lampa.Noty.show(
+          result.success
+            ? result.message
+            : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
+        );
+      },
+      onRender: function (element) {
+        setTimeout(function () {
+          var anchor = $('div[data-name="player_nw_path"]');
+          if (anchor.length) anchor.after(element);
+        }, 0);
+      },
+    });
 
     Promise.all([
       settingsManager.loadAsyncSetting("fullscreen", {
@@ -680,6 +733,33 @@
           },
           field: {
             name: Lampa.Lang.translate("app_settings_separator_main_name"),
+          },
+        })
+        .addToQueue({
+          component: "app_settings_player_find",
+          order: 5.5,
+          param: {
+            name: "player_find",
+            type: "button",
+          },
+          field: {
+            name: Lampa.Lang.translate("app_settings_player_find"),
+            description: Lampa.Lang.translate(
+              "app_settings_player_find_description",
+            ),
+          },
+          onChange: async () => {
+            Lampa.Loading.start(
+              () => {},
+              `${Lampa.Lang.translate("app_settings_player_find")}...`,
+            );
+            const result = await window.electronAPI.findPlayer();
+            Lampa.Loading.stop();
+            Lampa.Noty.show(
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
+            );
           },
         })
         .addToQueue({
@@ -1100,7 +1180,9 @@
 
             Lampa.Loading.stop();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1123,7 +1205,9 @@
             Lampa.Loading.stop();
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1154,7 +1238,9 @@
             updateTsStatus();
             Lampa.Loading.stop();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1220,7 +1306,7 @@
                   Lampa.Noty.show(
                     result.success
                       ? Lampa.Lang.translate("app_settings_ts_update_success")
-                      : "Ошибка: " + result.message,
+                      : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
                   );
                 });
 
@@ -1331,7 +1417,9 @@
             const result = await window.electronAPI.torrServer.uninstall();
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1356,7 +1444,9 @@
             const result = await window.electronAPI.torrServer.uninstall(true);
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
