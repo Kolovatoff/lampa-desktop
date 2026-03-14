@@ -84,9 +84,9 @@
     Lampa.Lang.add({
       // Основные настройки
       app_settings: {
-        ru: "Настройки приложения",
-        en: "App settings",
-        uk: "Налаштування додатку",
+        ru: "Приложение",
+        en: "App",
+        uk: "Докладання",
       },
       app_settings_fullscreen_field_name: {
         ru: "Запускать в полноэкранном режиме",
