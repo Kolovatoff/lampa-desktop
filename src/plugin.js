@@ -7,21 +7,6 @@
   function addQuitButton() {
     const container = Lampa.Head.render().find(".head__actions");
 
-    // Удаляем ламповскую кнопку полноэкранного режима
-    const targetElement = container.find(".head__action.selector.full--screen");
-    if (targetElement.length) {
-      targetElement.remove();
-    }
-
-    // Добавляем свою кнопку полноэкранного режима нативную для Electron
-    const iconFullscreen = $(
-      `<div class="head__action selector"><svg><use xlink:href="#sprite-fullscreen"></use></svg></div>`,
-    );
-    container.append(iconFullscreen);
-    iconFullscreen.on("hover:enter", () => {
-      window.electronAPI.toogleFullscreen();
-    });
-
     // Добавляем кнопку выхода
     const icon = $(`<div class="head__action selector">${icon_quit}</div>`);
     container.append(icon);
@@ -1979,7 +1964,7 @@
       .on(
         "keyf",
         () => {
-          window.electronAPI.toogleFullscreen();
+          Lampa.Utils.toggleFullscreen();
         },
         {
           description: Lampa.Lang.translate("hotkey_fullscreen"),
@@ -2029,7 +2014,14 @@
     ensureInputFocus();
   }
 
+  function overwriteToggleFullscreen() {
+    Lampa.Utils.toggleFullscreen = function () {
+      window.electronAPI.toggleFullscreen();
+    };
+  }
+
   function init() {
+    overwriteToggleFullscreen(); // Переопределение функции Utils.toggleFullscreen
     addQuitButton(); // Кнопка выхода в шапке
     addAppSettings(); // Настройки приложения внутри лампы
     initInputManager();

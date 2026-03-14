@@ -4,12 +4,7 @@ function registerWindowHandlers(getMainWindow) {
   ipcMain.on("toggle-fullscreen", () => {
     const mainWindow = getMainWindow();
     if (!mainWindow) return;
-
-    if (mainWindow.isFullScreen()) {
-      mainWindow.setFullScreen(false);
-    } else {
-      mainWindow.setFullScreen(true);
-    }
+    mainWindow.setFullScreen(!mainWindow.isFullScreen());
   });
 
   ipcMain.on("reload-page", (event, url) => {

@@ -59,7 +59,7 @@ contextBridge.exposeInMainWorld("require", (module) => {
 contextBridge.exposeInMainWorld("electronAPI", {
   // Управление приложением
   closeApp: () => ipcRenderer.send("close-app"),
-  toogleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
+  toggleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
   loadUrl: (url) => ipcRenderer.send("load-url", url),
   getAppVersion: async () => {
     return await ipcRenderer.invoke("get-app-version");
