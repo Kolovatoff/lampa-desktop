@@ -86,10 +86,6 @@ class VLCFinder {
     return null;
   }
 
-  validateVLC(vlcPath) {
-    return existsSync(vlcPath);
-  }
-
   // Получить путь к VLC
   async getVLCPath() {
     if (this.foundPath) {
@@ -126,11 +122,13 @@ class VLCFinder {
 
       await mainWindow.webContents.executeJavaScript(`
         localStorage.setItem('player_nw_path', '${escapedPath}');
-        console.log('✅ player_nw_path сохранен:', '${escapedPath}');
+        console.log('App', '✅ player_nw_path сохранен:', '${escapedPath}');
+        console.log('App', '✅ player_torrent сохранен:', 'other');
 
         // Обновляем и Lampa.Storage если доступно
         if (window.Lampa && window.Lampa.Storage) {
           window.Lampa.Storage.set('player_nw_path', '${escapedPath}');
+          window.Lampa.Storage.set('player_torrent', 'other');
         }
       `);
 
@@ -163,7 +161,7 @@ class VLCFinder {
 
     if (!result.canceled && result.filePaths.length > 0) {
       const selectedPath = result.filePaths[0];
-      if (this.validateVLC(selectedPath)) {
+      if (existsSync(selectedPath)) {
         this.foundPath = selectedPath;
         return selectedPath;
       }

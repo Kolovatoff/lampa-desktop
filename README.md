@@ -16,7 +16,7 @@
 ## 🔧 Возможности
 
 ✅ Поддержка **Windows, Linux, macOS**  
-✅ Синхронизация с **VLC Timecode** (просмотр в VLC)  
+✅ Синхронизация с **VLC Timecode** (просмотр в VLC) **(кроме macos)**  
 ✅ Динамическая загрузка Lampa с `lampa.mx` или кастомного URL  
 ✅ Экспорт/импорт конфигурации между устройствами  
 ✅ Встроенные настройки: смена URL, полноэкранный режим и др.  
@@ -26,6 +26,7 @@
 ✅ Автоматические обновления  
 ✅ Встроенная поддержка **TorrServer**  
 ✅ Автообнаружение VLC при запуске
+✅ Горячие клавиши (F - полный экран, S - поиск)
 
 ---
 
@@ -35,7 +36,7 @@
 
 1. Выберите подходящий установщик:
    - `.exe` — для Windows
-   - `.AppImage` / `.deb` — для Linux
+   - `.AppImage` / `.deb` / `.rpm` — для Linux
    - `.dmg` — для macOS
 2. Установите и наслаждайтесь!
 
@@ -51,8 +52,9 @@
 
 ## 🛠 Разработка
 
-Исходный код **Lampa** доступен здесь: 👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)  
-Документация от ИИ [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/yumata/lampa-source)
+Документация по этому проекту от ИИ [![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Kolovatoff/lampa-desktop)
+
+Исходный код самой **Lampa** доступен здесь: 👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)
 
 ---
 

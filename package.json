@@ -40,7 +40,7 @@
   "devDependencies": {
     "@eslint/js": "9.39.2",
     "commit-and-tag-version": "12.6.1",
-    "electron": "40.8.0",
+    "electron": "41.0.2",
     "electron-builder": "26.8.1",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",

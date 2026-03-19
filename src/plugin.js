@@ -7,21 +7,6 @@
   function addQuitButton() {
     const container = Lampa.Head.render().find(".head__actions");
 
-    // Удаляем ламповскую кнопку полноэкранного режима
-    const targetElement = container.find(".head__action.selector.full--screen");
-    if (targetElement.length) {
-      targetElement.remove();
-    }
-
-    // Добавляем свою кнопку полноэкранного режима нативную для Electron
-    const iconFullscreen = $(
-      `<div class="head__action selector"><svg><use xlink:href="#sprite-fullscreen"></use></svg></div>`,
-    );
-    container.append(iconFullscreen);
-    iconFullscreen.on("hover:enter", () => {
-      window.electronAPI.toogleFullscreen();
-    });
-
     // Добавляем кнопку выхода
     const icon = $(`<div class="head__action selector">${icon_quit}</div>`);
     container.append(icon);
@@ -84,9 +69,9 @@
     Lampa.Lang.add({
       // Основные настройки
       app_settings: {
-        ru: "Настройки приложения",
-        en: "App settings",
-        uk: "Налаштування додатку",
+        ru: "Приложение",
+        en: "App",
+        uk: "Докладання",
       },
       app_settings_fullscreen_field_name: {
         ru: "Запускать в полноэкранном режиме",
@@ -438,6 +423,18 @@
         uk: "Введіть PIN-код",
       },
 
+      // Плееры
+      app_settings_player_find: {
+        ru: "Поиск плеера",
+        en: "Player search",
+        uk: "Пошук плеєра",
+      },
+      app_settings_player_find_description: {
+        ru: "Нажмите, чтобы найти установленный плеер VLC в вашей системе автоматически",
+        en: "Click to find the installed VLC player in your system automatically.",
+        uk: "Натисніть, щоб автоматично знайти встановлений програвач VLC у вашій системі",
+      },
+
       // О приложении
       app_about_title: {
         ru: "Не официальное приложение-клиент для Lampa.",
@@ -491,6 +488,12 @@
         en: "Open/close menu",
         uk: "Відкрити / закрити меню",
       },
+
+      app_error: {
+        ru: "Ошибка",
+        en: "Error",
+        uk: "Помилка",
+      },
     });
 
     Lampa.SettingsApi.addComponent({
@@ -511,6 +514,41 @@
     );
 
     const settingsManager = new SettingsManager("app_settings");
+
+    Lampa.SettingsApi.addParam({
+      component: "player",
+      param: {
+        name: "player_find",
+        type: "button",
+      },
+      field: {
+        name: Lampa.Lang.translate("app_settings_player_find"),
+        description: Lampa.Lang.translate(
+          "app_settings_player_find_description",
+        ),
+      },
+      onChange: async () => {
+        Lampa.Loading.start(
+          () => {},
+          `${Lampa.Lang.translate("app_settings_player_find")}...`,
+        );
+        const result = await window.electronAPI.findPlayer();
+        Lampa.Loading.stop();
+        // Lampa.Settings.create("player", {});
+        Lampa.Settings.update();
+        Lampa.Noty.show(
+          result.success
+            ? result.message
+            : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
+        );
+      },
+      onRender: function (element) {
+        setTimeout(function () {
+          var anchor = $('div[data-name="player_nw_path"]');
+          if (anchor.length) anchor.after(element);
+        }, 0);
+      },
+    });
 
     Promise.all([
       settingsManager.loadAsyncSetting("fullscreen", {
@@ -685,6 +723,33 @@
           },
           field: {
             name: Lampa.Lang.translate("app_settings_separator_main_name"),
+          },
+        })
+        .addToQueue({
+          component: "app_settings_player_find",
+          order: 5.5,
+          param: {
+            name: "player_find",
+            type: "button",
+          },
+          field: {
+            name: Lampa.Lang.translate("app_settings_player_find"),
+            description: Lampa.Lang.translate(
+              "app_settings_player_find_description",
+            ),
+          },
+          onChange: async () => {
+            Lampa.Loading.start(
+              () => {},
+              `${Lampa.Lang.translate("app_settings_player_find")}...`,
+            );
+            const result = await window.electronAPI.findPlayer();
+            Lampa.Loading.stop();
+            Lampa.Noty.show(
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
+            );
           },
         })
         .addToQueue({
@@ -1105,7 +1170,9 @@
 
             Lampa.Loading.stop();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1128,7 +1195,9 @@
             Lampa.Loading.stop();
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1159,7 +1228,9 @@
             updateTsStatus();
             Lampa.Loading.stop();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1225,7 +1296,7 @@
                   Lampa.Noty.show(
                     result.success
                       ? Lampa.Lang.translate("app_settings_ts_update_success")
-                      : "Ошибка: " + result.message,
+                      : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
                   );
                 });
 
@@ -1336,7 +1407,9 @@
             const result = await window.electronAPI.torrServer.uninstall();
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1361,7 +1434,9 @@
             const result = await window.electronAPI.torrServer.uninstall(true);
             updateTsStatus();
             Lampa.Noty.show(
-              result.success ? result.message : "Ошибка: " + result.message,
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
             );
           },
         })
@@ -1894,7 +1969,7 @@
       .on(
         "keyf",
         () => {
-          window.electronAPI.toogleFullscreen();
+          Lampa.Utils.toggleFullscreen();
         },
         {
           description: Lampa.Lang.translate("hotkey_fullscreen"),
@@ -1954,7 +2029,14 @@
     ensureInputFocus();
   }
 
+  function overwriteToggleFullscreen() {
+    Lampa.Utils.toggleFullscreen = function () {
+      window.electronAPI.toggleFullscreen();
+    };
+  }
+
   function init() {
+    overwriteToggleFullscreen(); // Переопределение функции Utils.toggleFullscreen
     addQuitButton(); // Кнопка выхода в шапке
     addAppSettings(); // Настройки приложения внутри лампы
     initInputManager();

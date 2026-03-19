@@ -59,7 +59,7 @@ contextBridge.exposeInMainWorld("require", (module) => {
 contextBridge.exposeInMainWorld("electronAPI", {
   // Управление приложением
   closeApp: () => ipcRenderer.send("close-app"),
-  toogleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
+  toggleFullscreen: () => ipcRenderer.send("toggle-fullscreen"),
   loadUrl: (url) => ipcRenderer.send("load-url", url),
   getAppVersion: async () => {
     return await ipcRenderer.invoke("get-app-version");
@@ -132,10 +132,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
     isInstalled: () => ipcRenderer.invoke("torrserver-is-installed"),
   },
 
+  // Разные
   // Работа с папками
   folder: {
     open: (path) => ipcRenderer.invoke("folder-open", path),
   },
+  // Поиск плеера
+  findPlayer: (args) => ipcRenderer.invoke("find-player", args),
 });
 
 console.log("Preload script loaded successfully");

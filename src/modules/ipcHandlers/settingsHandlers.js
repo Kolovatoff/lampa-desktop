@@ -163,7 +163,6 @@ function registerSettingsHandlers(store, getMainWindow, injectPlugin) {
   });
 }
 
-// Экспортируем и функцию регистрации, и саму функцию импорта
 module.exports = {
   registerSettingsHandlers,
   importSettings,

@@ -1,5 +1,4 @@
 // modules/ipcHandlers/index.js
-const { ipcMain } = require("electron");
 const store = require("../storeManager");
 const { getMainWindow } = require("../windowManager");
 const { injectPlugin } = require("../pluginHandler");
@@ -11,6 +10,7 @@ const { registerSettingsHandlers } = require("./settingsHandlers");
 const registerCloudHandlers = require("./cloudHandlers");
 const registerTorrServerHandlers = require("./torrServerHandlers");
 const registerFolderHandlers = require("./folderHandlers");
+const registerOtherHandlers = require("./otherHandlers");
 
 function registerIpcHandlers() {
   // Базовые обработчики store
@@ -35,10 +35,7 @@ function registerIpcHandlers() {
   registerFolderHandlers();
 
   // Дополнительные обработчики
-  ipcMain.handle("get-app-version", () => {
-    const { app } = require("electron");
-    return app.getVersion();
-  });
+  registerOtherHandlers(getMainWindow);
 }
 
 module.exports = {
