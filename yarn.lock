@@ -1211,9 +1211,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commit-and-tag-version@npm:12.6.1":
-  version: 12.6.1
-  resolution: "commit-and-tag-version@npm:12.6.1"
+"commit-and-tag-version@npm:12.7.1":
+  version: 12.7.1
+  resolution: "commit-and-tag-version@npm:12.7.1"
   dependencies:
     chalk: "npm:^2.4.2"
     conventional-changelog: "npm:4.0.0"
@@ -1223,7 +1223,7 @@ __metadata:
     detect-indent: "npm:^6.1.0"
     detect-newline: "npm:^3.1.0"
     dotgitignore: "npm:^2.1.0"
-    fast-xml-parser: "npm:^5.2.5"
+    fast-xml-parser: "npm:^5.5.6"
     figures: "npm:^3.2.0"
     find-up: "npm:^5.0.0"
     git-semver-tags: "npm:^5.0.1"
@@ -1232,7 +1232,7 @@ __metadata:
     yargs: "npm:^17.7.2"
   bin:
     commit-and-tag-version: bin/cli.js
-  checksum: 10c0/ddd019112cba177908d0cf4948b345dc4343b4c32bd073be7659b0611bf8771565e832e41eb51306fd752a49cdf0923e5a1f3a1a337a8c12ab04669ffa65fabb
+  checksum: 10c0/a14518bb0836cba1deb2806b1e22f42c9b45b9fa45bec2586354b63b65ecd6bacf4d4a66899f9c0d7a56004ad5bca135b58bdb45f5a58550fe9cedf84edbf9d3
   languageName: node
   linkType: hard
 
@@ -1824,16 +1824,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"electron@npm:41.0.2":
-  version: 41.0.2
-  resolution: "electron@npm:41.0.2"
+"electron@npm:41.0.3":
+  version: 41.0.3
+  resolution: "electron@npm:41.0.3"
   dependencies:
     "@electron/get": "npm:^2.0.0"
     "@types/node": "npm:^24.9.0"
     extract-zip: "npm:^2.0.1"
   bin:
     electron: cli.js
-  checksum: 10c0/2aabd5d72e339e1c839cb75491e1f1154120dd2c16039c515db4cc26cb85d05006d8ebb251c8d5b5b811527e2135afe5fe68e1e95831e821b6e38d957ca9c808
+  checksum: 10c0/3f9aea3394eac7576a658f26d7a69b0b2c5274d89f089d6c7538427d85652aa447b0e885556a7e2a6e0197b1b896a504d15bc695e2d173fe51a3c1b29f31b82a
   languageName: node
   linkType: hard
 
@@ -2155,14 +2155,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:^5.2.5":
-  version: 5.3.3
-  resolution: "fast-xml-parser@npm:5.3.3"
+"fast-xml-builder@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "fast-xml-builder@npm:1.1.4"
   dependencies:
-    strnum: "npm:^2.1.0"
+    path-expression-matcher: "npm:^1.1.3"
+  checksum: 10c0/d5dfc0660f7f886b9f42747e6aa1d5e16c090c804b322652f65a5d7ffb93aa00153c3e1276cd053629f9f4c4f625131dc6886677394f7048e827e63b97b18927
+  languageName: node
+  linkType: hard
+
+"fast-xml-parser@npm:^5.5.6":
+  version: 5.5.6
+  resolution: "fast-xml-parser@npm:5.5.6"
+  dependencies:
+    fast-xml-builder: "npm:^1.1.4"
+    path-expression-matcher: "npm:^1.1.3"
+    strnum: "npm:^2.1.2"
   bin:
     fxparser: src/cli/cli.js
-  checksum: 10c0/2cc690f220a17f77b797923b8b943172c5072d066e3d9846d52be5443682fdbb2bad8302c9996f04a9e6a59603f05a99b2053b564459ac35bd8f6339e8ac06f3
+  checksum: 10c0/b7aed4f561f57fe4eba91c5e4a4438cb7eb09ac885b32d912eec257b84e6587dea88a7afd5738fd36c1e6a0bce778dfd8fcefea829fcc44ef019753b92e36402
   languageName: node
   linkType: hard
 
@@ -3117,8 +3128,8 @@ __metadata:
   resolution: "lampa-desktop@workspace:."
   dependencies:
     "@eslint/js": "npm:9.39.2"
-    commit-and-tag-version: "npm:12.6.1"
-    electron: "npm:41.0.2"
+    commit-and-tag-version: "npm:12.7.1"
+    electron: "npm:41.0.3"
     electron-builder: "npm:26.8.1"
     electron-store: "npm:11.0.2"
     electron-updater: "npm:6.8.3"
@@ -3926,6 +3937,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"path-expression-matcher@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "path-expression-matcher@npm:1.1.3"
+  checksum: 10c0/45c01471bc62c5f38d069418aec831763e6f45bb85f9520b08de441e6cd14f84b3098ecb66255e819c2af21102abcd2b45550dc1285996717ce9292802df2bc5
+  languageName: node
+  linkType: hard
+
 "path-is-absolute@npm:^1.0.0":
   version: 1.0.1
   resolution: "path-is-absolute@npm:1.0.1"
@@ -4666,10 +4684,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"strnum@npm:^2.1.0":
-  version: 2.1.2
-  resolution: "strnum@npm:2.1.2"
-  checksum: 10c0/4e04753b793540d79cd13b2c3e59e298440477bae2b853ab78d548138385193b37d766d95b63b7046475d68d44fb1fca692f0a3f72b03f4168af076c7b246df9
+"strnum@npm:^2.1.2":
+  version: 2.2.1
+  resolution: "strnum@npm:2.2.1"
+  checksum: 10c0/2773632d58f71ef35a3e9111da6533ba5f7da10edcb86ff5c19e0194c017d22509bc6c5cad4902535de384462170f830dc67e2cbd8060d3375f52466a22fb169
   languageName: node
   linkType: hard
 

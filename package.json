@@ -1,7 +1,7 @@
 {
   "name": "lampa-desktop",
   "productName": "Lampa",
-  "version": "1.3.0",
+  "version": "1.2.9",
   "description": "Десктопное приложение-клиент для Lampa",
   "repository": {
     "type": "git",
@@ -17,8 +17,8 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "build-linux": "electron-builder --linux --publish=never",
-    "build-mac": "electron-builder --mac --x64 --arm64 --publish=never",
-    "build-win": "electron-builder --win --x64 --ia32 --publish=never",
+    "build-mac": "electron-builder --mac --publish=never",
+    "build-win": "electron-builder --win --publish=never",
     "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier . --check",
@@ -39,8 +39,8 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.2",
-    "commit-and-tag-version": "12.6.1",
-    "electron": "41.0.2",
+    "commit-and-tag-version": "12.7.1",
+    "electron": "41.0.3",
     "electron-builder": "26.8.1",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
@@ -81,12 +81,25 @@
       "category": "public.app-category.utilities",
       "icon": "assets/mac.icns",
       "target": [
-        "dmg"
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ]
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32",
+            "arm64"
+          ]
+        }
       ],
       "icon": "assets/win.ico",
       "verifyUpdateCodeSignature": true
