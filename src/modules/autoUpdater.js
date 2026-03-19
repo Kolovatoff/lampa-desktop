@@ -1,5 +1,5 @@
 const { autoUpdater } = require("electron-updater");
-const { dialog } = require("electron");
+const { dialog, shell } = require("electron");
 const store = require("./storeManager");
 
 function setupAutoUpdater() {
@@ -28,16 +28,38 @@ function setupAutoUpdater() {
 
   autoUpdater.on("update-downloaded", (info) => {
     console.log("Update downloaded:", info);
+
+    const repoUrl =
+      "https://github.com/Kolovatoff/lampa-desktop/releases/latest";
+
     dialog
       .showMessageBox({
         type: "info",
         title: "Обновление готово",
         message: "Новое обновление загружено. Перезапустить приложение?",
-        buttons: ["Да", "Позже"],
+        buttons: ["Да", "Позже", "Список изменений на GitHub"],
       })
       .then((result) => {
         if (result.response === 0) {
+          // Да - перезапускаем
           autoUpdater.quitAndInstall();
+        } else if (result.response === 2) {
+          // Список изменений на GitHub
+          shell.openExternal(repoUrl);
+
+          // Показываем диалог снова после открытия GitHub
+          dialog
+            .showMessageBox({
+              type: "info",
+              title: "Обновление готово",
+              message: "Новое обновление загружено. Перезапустить приложение?",
+              buttons: ["Да", "Позже"],
+            })
+            .then((secondResult) => {
+              if (secondResult.response === 0) {
+                autoUpdater.quitAndInstall();
+              }
+            });
         }
       });
   });
