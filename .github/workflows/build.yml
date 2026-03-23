@@ -160,7 +160,7 @@ jobs:
         id: generate
         run: |
           VERSION="${{ needs.build-linux.outputs.version }}"
-          
+
           cat > downloads.md << 'EOF'
           ### ⬇️ Скачать
 
@@ -176,7 +176,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               size=$(du -h "$file" | cut -f1)
-          
+
               # Determine architecture from filename
               if [[ "$filename" == *"x64"* ]]; then
                 arch="**64-bit**"
@@ -189,7 +189,7 @@ jobs:
               else
                 arch="**Любая**"
               fi
-          
+
               echo "| $arch | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
             fi
           done
@@ -209,7 +209,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               size=$(du -h "$file" | cut -f1)
-          
+
               if [[ "$filename" == *"x64"* ]] || [[ "$filename" == *"x86_64"* ]]; then
                 arch="**Intel (64-bit)**"
               elif [[ "$filename" == *"arm64"* ]]; then
@@ -217,7 +217,7 @@ jobs:
               else
                 arch="**Universal**"
               fi
-          
+
               echo "| $arch | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
             fi
           done
@@ -237,7 +237,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               size=$(du -h "$file" | cut -f1)
-          
+
               if [[ "$filename" == *"amd64"* ]]; then
                 arch="**64-bit**"
                 format="DEB"
@@ -248,7 +248,7 @@ jobs:
                 arch="**ARMv7**"
                 format="DEB"
               fi
-          
+
               echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
             fi
           done
@@ -257,7 +257,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               size=$(du -h "$file" | cut -f1)
-          
+
               if [[ "$filename" == *"x86_64"* ]]; then
                 arch="**64-bit**"
                 format="RPM"
@@ -268,7 +268,7 @@ jobs:
                 arch="**ARMv7**"
                 format="RPM"
               fi
-          
+
               echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
             fi
           done
@@ -277,7 +277,7 @@ jobs:
             if [ -f "$file" ]; then
               filename=$(basename "$file")
               size=$(du -h "$file" | cut -f1)
-          
+
               if [[ "$filename" == *"x86_64"* ]]; then
                 arch="**64-bit**"
                 format="AppImage"
@@ -285,7 +285,7 @@ jobs:
                 arch="**ARM64**"
                 format="AppImage"
               fi
-          
+
               echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
             fi
           done
@@ -312,7 +312,7 @@ jobs:
           echo "${{ needs.build-linux.outputs.changelog_body }}" > release_body.md
           echo "" >> release_body.md
           echo "${{ needs.generate-downloads-table.outputs.downloads_section }}" >> release_body.md
-          
+
           # Show the combined body for debugging
           cat release_body.md
 

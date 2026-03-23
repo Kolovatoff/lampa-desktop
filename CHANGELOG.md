@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.3.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.3.0...v1.3.1) (2026-03-23)
+
+### 🐛 Исправления
+
+- исправить параметр webSecurity ([737f0a7](https://github.com/Kolovatoff/lampa-desktop/commit/737f0a7ae1139c1f92697ad9d6bd28f3d93912b1))
+- **Handlers:** вернуть потерянный get-app-version ([c17c98c](https://github.com/Kolovatoff/lampa-desktop/commit/c17c98c6fdbc0024ddfd0eb13de640b3f5a61293))
+
+### 📚 Документация
+
+- **README:** исправление ссылки на документацию ([07b069a](https://github.com/Kolovatoff/lampa-desktop/commit/07b069a08d11c465fd2532dc7419794bf400af15))
+
+### ♻️ Рефакторинг
+
+- горячая клавиша M открывает/закрывает меню ([14c0741](https://github.com/Kolovatoff/lampa-desktop/commit/14c0741a217a83173552201abeb3fd6b9c4ec1d2))
+- добавить кнопку "Список изменений на GitHub" ([0fa07fb](https://github.com/Kolovatoff/lampa-desktop/commit/0fa07fb6f6acbc761163793fe469e39f2bdaa9e1))
+- добавить поиск плеера кнопкой в настройках ([ee7782d](https://github.com/Kolovatoff/lampa-desktop/commit/ee7782d949d00b049377dd9f5c5f315af2431295))
+- изменить переопределение кнопки fullscreen ([e813f38](https://github.com/Kolovatoff/lampa-desktop/commit/e813f38d2453c0ab6ec42a04a3e45d9bbc816f7a))
+- отменить поиск плеера если выбран внутренний плеер ([2b7b924](https://github.com/Kolovatoff/lampa-desktop/commit/2b7b924f4760243683885731dab593424daf9a63))
+- переименовать Настройки приложения в Приложение ([683e7f5](https://github.com/Kolovatoff/lampa-desktop/commit/683e7f598fbd526d35ae199ed3b12b5c0881a79f))
+
 ## [1.3.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.2.1...v1.3.0) (2026-03-09)
 
 ### ✨ Новые возможности
