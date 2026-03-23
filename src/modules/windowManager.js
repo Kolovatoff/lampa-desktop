@@ -48,10 +48,10 @@ function createWindow() {
       enableRemoteModule: false,
       sandbox: false,
       contextMenu: false,
+      webSecurity: true,
     },
     show: false,
     titleBarStyle: "default",
-    webSecurity: true,
     fullscreen: Boolean(store.get("fullscreen")),
   };
 
