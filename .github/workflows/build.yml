@@ -147,23 +147,180 @@ jobs:
             dist/*.blockmap
             dist/latest.yml
 
-  release:
+  generate-downloads-table:
     runs-on: ubuntu-latest
     needs: [build-linux, build-macos, build-windows]
+    outputs:
+      downloads_section: ${{ steps.generate.outputs.downloads_section }}
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v7
 
-      - name: Show debug info
+      - name: Generate downloads table
+        id: generate
         run: |
-          echo "Version from build-linux: ${{ needs.build-linux.outputs.version }}"
-          echo "Changelog from build-linux: ${{ needs.build-linux.outputs.changelog_body }}"
+          VERSION="${{ needs.build-linux.outputs.version }}"
+          
+          cat > downloads.md << 'EOF'
+          ### ⬇️ Скачать
+
+          <details>
+          <summary><b>🪟 Windows</b></summary>
+
+          | Архитектура | Установщик |
+          |-------------|------------|
+          EOF
+
+          # Windows файлы
+          for file in lampa-windows/*.exe; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+          
+              # Determine architecture from filename
+              if [[ "$filename" == *"x64"* ]]; then
+                arch="**64-bit**"
+              elif [[ "$filename" == *"ia32"* ]]; then
+                arch="**32-bit**"
+              elif [[ "$filename" == *"arm64"* ]]; then
+                arch="**ARM64**"
+              elif [[ "$filename" == *"x86"* ]]; then
+                arch="**32-bit**"
+              else
+                arch="**Любая**"
+              fi
+          
+              echo "| $arch | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
+            fi
+          done
+
+          cat >> downloads.md << 'EOF'
+          </details>
+
+          <details>
+          <summary><b>🍏 macOS</b></summary>
+
+          | Архитектура | Установщик |
+          |-------------|------------|
+          EOF
+
+          # macOS файлы
+          for file in lampa-macos/*.dmg; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+          
+              if [[ "$filename" == *"x64"* ]] || [[ "$filename" == *"x86_64"* ]]; then
+                arch="**Intel (64-bit)**"
+              elif [[ "$filename" == *"arm64"* ]]; then
+                arch="**Apple Silicon (ARM64)**"
+              else
+                arch="**Universal**"
+              fi
+          
+              echo "| $arch | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
+            fi
+          done
+
+          cat >> downloads.md << 'EOF'
+          </details>
+
+          <details>
+          <summary><b>🐧 Linux</b></summary>
+
+          | Архитектура | Формат | Установщик |
+          |-------------|--------|------------|
+          EOF
+
+          # Linux файлы
+          for file in lampa-linux/*.deb; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+          
+              if [[ "$filename" == *"amd64"* ]]; then
+                arch="**64-bit**"
+                format="DEB"
+              elif [[ "$filename" == *"arm64"* ]]; then
+                arch="**ARM64**"
+                format="DEB"
+              elif [[ "$filename" == *"armhf"* ]]; then
+                arch="**ARMv7**"
+                format="DEB"
+              fi
+          
+              echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
+            fi
+          done
+
+          for file in lampa-linux/*.rpm; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+          
+              if [[ "$filename" == *"x86_64"* ]]; then
+                arch="**64-bit**"
+                format="RPM"
+              elif [[ "$filename" == *"aarch64"* ]]; then
+                arch="**ARM64**"
+                format="RPM"
+              elif [[ "$filename" == *"armv7"* ]]; then
+                arch="**ARMv7**"
+                format="RPM"
+              fi
+          
+              echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
+            fi
+          done
+
+          for file in lampa-linux/*.AppImage; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              size=$(du -h "$file" | cut -f1)
+          
+              if [[ "$filename" == *"x86_64"* ]]; then
+                arch="**64-bit**"
+                format="AppImage"
+              elif [[ "$filename" == *"arm64"* ]]; then
+                arch="**ARM64**"
+                format="AppImage"
+              fi
+          
+              echo "| $arch | $format | [\`$filename\`](https://github.com/${{ github.repository }}/releases/download/v$VERSION/$filename) <br> <sup>$size</sup> |" >> downloads.md
+            fi
+          done
+
+          cat >> downloads.md << 'EOF'
+          </details>
+          EOF
+
+          downloads_section=$(cat downloads.md)
+          echo "downloads_section<<EOF" >> $GITHUB_OUTPUT
+          echo "$downloads_section" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-macos, build-windows, generate-downloads-table]
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+
+      - name: Combine release body
+        run: |
+          # Combine changelog with downloads section
+          echo "${{ needs.build-linux.outputs.changelog_body }}" > release_body.md
+          echo "" >> release_body.md
+          echo "${{ needs.generate-downloads-table.outputs.downloads_section }}" >> release_body.md
+          
+          # Show the combined body for debugging
+          cat release_body.md
 
       - name: Publish to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          body: ${{ needs.build-linux.outputs.changelog_body }}
+          body_path: release_body.md
           files: |
             lampa-linux/*.AppImage
             lampa-linux/*.deb
