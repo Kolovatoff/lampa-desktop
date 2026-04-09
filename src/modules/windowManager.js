@@ -48,7 +48,7 @@ function createWindow() {
       enableRemoteModule: false,
       sandbox: false,
       contextMenu: false,
-      webSecurity: true,
+      webSecurity: Boolean(store.get("webSecurity")),
     },
     show: false,
     titleBarStyle: "default",

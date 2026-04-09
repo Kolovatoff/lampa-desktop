@@ -5,6 +5,7 @@ const store = new Store({
   defaults: {
     lampaUrl: "http://lampa.mx",
     fullscreen: false,
+    webSecurity: true,
     autoUpdate: true,
     windowState: {},
     tsVersion: null,

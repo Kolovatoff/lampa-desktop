@@ -307,6 +307,22 @@
         uk: "Оновлень немає, у вас остання версія",
       },
 
+      app_settings_web_security_field_name: {
+        ru: "Проверка CORS",
+        en: "CORS check",
+        uk: "Перевірка CORS",
+      },
+      app_settings_web_security_field_description: {
+        ru: "Если балансировщики не работают, укажите «Нет» — CORS отключится, но вы действуете на свой риск.",
+        en: "If load balancers do not work, set 'No' — CORS will be disabled, but you do so at your own risk.",
+        uk: "Якщо балансувальники не працюють, вкажіть «Ні» — CORS вимкнеться, але ви дієте на свій ризик.",
+      },
+      app_settings_web_security_notify: {
+        ru: "Перезапустите приложение, для применения настройки!",
+        en: "Restart the application to apply the setting!",
+        uk: "Перезапустіть застосунок, щоб застосувати налаштування!",
+      },
+
       // Импорт/Экспорт
       app_settings_ie_field_name: {
         ru: "Экспорт/Импорт настроек",
@@ -608,6 +624,23 @@
               Lampa.Lang.translate("app_settings_lampa_url_error"),
             );
           }
+        },
+      }),
+      settingsManager.loadAsyncSetting("webSecurity", {
+        order: 8.5,
+        param: {
+          name: "app_settings_webSecurity",
+          type: "trigger",
+        },
+        field: {
+          name: Lampa.Lang.translate("app_settings_web_security_field_name"),
+          description: Lampa.Lang.translate(
+            "app_settings_web_security_field_description",
+          ),
+        },
+        onChange: async function (value) {
+          await window.electronAPI.store.set("webSecurity", value === "true");
+          Lampa.Noty.show(Lampa.Lang.translate("app_settings_web_security_notify"));
         },
       }),
     ]).then(() => {
