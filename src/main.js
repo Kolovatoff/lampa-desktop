@@ -2,20 +2,20 @@ const { app } = require("electron");
 
 const { setupAppLifecycle, gotTheLock } = require("./modules/appLifecycle");
 const { createWindow } = require("./modules/windowManager");
-const { setupProxyServer, closeProxyServer } = require("./modules/proxyServer");
 const { setupAutoUpdater } = require("./modules/autoUpdater");
 const { registerIpcHandlers } = require("./modules/ipcHandlers");
 const torrServerManager = require("./modules/torrServerManager");
 const autoStartManager = require("./modules/autoStartManager");
-
+const VLCOptionsInterceptor = require("./modules/vlcOptionsInterceptor");
 setupAppLifecycle();
+
 
 registerIpcHandlers();
 
 app.whenReady().then(async () => {
   if (!gotTheLock) return;
 
-  setupProxyServer();
+  VLCOptionsInterceptor.initialize();
 
   createWindow();
 
@@ -86,14 +86,6 @@ app.on("will-quit", async (event) => {
         );
       }
     }
-  }
-
-  try {
-    console.log("🛑 Остановка прокси-сервера...");
-    await closeProxyServer();
-    console.log("✅ Прокси-сервер остановлен");
-  } catch (error) {
-    console.error("❌ Ошибка при остановке прокси-сервера:", error);
   }
 
   console.log("👋 Завершение приложения");
