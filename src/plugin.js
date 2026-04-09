@@ -71,7 +71,7 @@
       app_settings: {
         ru: "Приложение",
         en: "App",
-        uk: "Докладання",
+        uk: "Додаток",
       },
       app_settings_fullscreen_field_name: {
         ru: "Запускать в полноэкранном режиме",
