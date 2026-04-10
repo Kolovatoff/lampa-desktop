@@ -1995,7 +1995,7 @@
         {
           description: Lampa.Lang.translate("hotkey_search"),
           condition: () => {
-            return !document.body.classList.contains("search--open");
+            return !(document.body.classList.contains("search--open") || !!document.body.querySelector('div.modal'));
           },
         },
       )
