@@ -640,7 +640,9 @@
         },
         onChange: async function (value) {
           await window.electronAPI.store.set("webSecurity", value === "true");
-          Lampa.Noty.show(Lampa.Lang.translate("app_settings_web_security_notify"));
+          Lampa.Noty.show(
+            Lampa.Lang.translate("app_settings_web_security_notify"),
+          );
         },
       }),
     ]).then(() => {
@@ -1994,7 +1996,10 @@
         {
           description: Lampa.Lang.translate("hotkey_search"),
           condition: () => {
-            return !(document.body.classList.contains("search--open") || !!document.body.querySelector('div.modal'));
+            return !(
+              document.body.classList.contains("search--open") ||
+              !!document.body.querySelector("div.modal")
+            );
           },
         },
       )

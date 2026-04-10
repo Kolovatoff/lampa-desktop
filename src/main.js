@@ -9,7 +9,6 @@ const autoStartManager = require("./modules/autoStartManager");
 const VLCOptionsInterceptor = require("./modules/vlcOptionsInterceptor");
 setupAppLifecycle();
 
-
 registerIpcHandlers();
 
 app.whenReady().then(async () => {

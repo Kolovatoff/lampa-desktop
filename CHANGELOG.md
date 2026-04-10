@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.4.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.3.1...v1.4.0) (2026-04-10)
+
+### ✨ Новые возможности
+
+- добавлена возможность включать и отключать CORS (актуально для балансеров) ([0428008](https://github.com/Kolovatoff/lampa-desktop/commit/0428008d455443fc5940d40b2cce84ff83c581b9))
+
+### 🐛 Исправления
+
+- поиск теперь не открывается по кнопке S, если открыто модальное окно ([e38fa37](https://github.com/Kolovatoff/lampa-desktop/commit/e38fa37b31aaf319272c5f7b29563112249febe4))
+
+### ♻️ Рефакторинг
+
+- удален http-proxy для vlc и заменен подменой OPTIONS ответа ([4fef3c3](https://github.com/Kolovatoff/lampa-desktop/commit/4fef3c38577717f6a0ec6f3031e691aa167362b3))
+
 ## [1.3.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.3.0...v1.3.1) (2026-03-23)
 
 ### 🐛 Исправления
