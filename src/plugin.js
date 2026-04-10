@@ -889,13 +889,12 @@
                 },
               ],
               onSelect: async (a) => {
-                Lampa.Noty.show(
-                  Lampa.Lang.translate("app_settings_noty_waiting"),
-                );
                 try {
                   let result;
-
                   if (a.action === "e-cloud") {
+                    Lampa.Noty.show(
+                      Lampa.Lang.translate("app_settings_noty_waiting"),
+                    );
                     result = await window.electronAPI.exportSettingsToCloud();
                     if (result && result.message) {
                       Lampa.Noty.show(result.message);
