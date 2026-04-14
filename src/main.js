@@ -1,4 +1,5 @@
 const { app } = require("electron");
+const path = require("node:path");
 
 const { setupAppLifecycle, gotTheLock } = require("./modules/appLifecycle");
 const { createWindow } = require("./modules/windowManager");
@@ -10,6 +11,18 @@ const VLCOptionsInterceptor = require("./modules/vlcOptionsInterceptor");
 setupAppLifecycle();
 
 registerIpcHandlers();
+
+// Меняем расположение кеша и т.п. для разработки, чтобы не мешало установленной версии
+if (process.argv.includes("--dev") || process.env.NODE_ENV === "development") {
+  // Для Windows: C:\Users\%USERNAME%\AppData\Roaming\Lampa-Dev
+  // Для macOS: ~/Library/Application Support/Lampa-Dev
+  // Для Linux: ~/.config/Lampa-Dev
+  const devAppName = `${app.getName()}-Dev`;
+  const originalUserData = app.getPath("userData");
+  const devUserData = path.join(path.dirname(originalUserData), devAppName);
+  app.setPath("userData", devUserData);
+  console.log(`🔧 Режим разработки: ${devUserData}`);
+}
 
 app.whenReady().then(async () => {
   if (!gotTheLock) return;
