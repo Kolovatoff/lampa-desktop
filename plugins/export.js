@@ -6,7 +6,6 @@
 
   // Шифрование JSON с PIN и отправка на сервер
   async function uploadJson(jsonData, pin) {
-    // Преобразуем PIN в строку и дополняем нулями до 4 символов
     const pinStr = String(pin).padStart(4, "0");
 
     const jsonString = JSON.stringify(jsonData);
@@ -89,9 +88,9 @@
     uploadJson(settings, pin)
       .then((data) => {
         Lampa.Modal.open({
-          title: "Экспорт",
+          title: Lampa.Lang.translate("kff_export_modal_title"),
           html: $(
-            `<div><ul><li>Сохраните ID экспорта: ${data.id}</li><li>И пин-код для расшифровки: ${pin}</li></ul><ul><li>Внимание! Хранится на сервере 1 час.</li></ul></div>`,
+            `<div><ul><li>${Lampa.Lang.translate("kff_export_modal_save_id")}: ${data.id}</li><li>${Lampa.Lang.translate("kff_export_modal_pin_code")}: ${pin}</li></ul><ul><li>${Lampa.Lang.translate("kff_export_modal_warning")}</li></ul></div>`,
           ),
           size: "small",
           onBack: function () {
@@ -101,8 +100,8 @@
         });
       })
       .catch((error) => {
-        console.error("Полная ошибка:", error); // смотрим в консоли
-        Lampa.Noty.show("Ошибка экспорта");
+        console.error("Полная ошибка:", error);
+        Lampa.Noty.show(Lampa.Lang.translate("kff_export_error"));
       });
   }
 
@@ -111,10 +110,10 @@
       let html = $(`
         <div class="account-modal-split">
           <div class="account-modal-split__info">
-            <div class="account-modal-split__title">Импорт настроек из облака</div>
-            <div class="account-modal-split__text">Введите ID</div>
+            <div class="account-modal-split__title">${Lampa.Lang.translate("kff_import_modal_title")}</div>
+            <div class="account-modal-split__text">${Lampa.Lang.translate("kff_import_modal_enter_id")}</div>
             <div class="account-modal-split__code">
-              ${Array(10).fill('<div class="account-modal-split__code-num"><span></span></div>').join("")}
+              ${Array(10).fill('<div class="account-modal-split__code-num"><span>-</span></div>').join("")}
             </div>
             <div class="account-modal-split__keyboard">
               <div class="simple-keyboard"></div>
@@ -171,7 +170,6 @@
               keyboard = null;
             }
             Lampa.Modal.close();
-            // Открываем второй модал для PIN
             showPinModal(value);
           }
         },
@@ -205,7 +203,7 @@
       Lampa.Input.edit(
         {
           free: true,
-          title: "Введите PIN-код",
+          title: Lampa.Lang.translate("kff_import_modal_enter_pin"),
           nosave: true,
           value: "",
           layout: "nums",
@@ -214,7 +212,6 @@
         },
         (pin4) => {
           if (pin4 && pin4.length === 4) {
-            // console.log("10-значный код:", code10, "PIN:", pin4);
             downloadJson(code10, pin4)
               .then((settings) => {
                 localStorage.clear();
@@ -223,19 +220,17 @@
                 Object.entries(settings.lampa).forEach(([key, value]) => {
                   localStorage.setItem(key, value);
                 });
-                Lampa.Noty.show("Успешно, перезагрузка");
+                Lampa.Noty.show(Lampa.Lang.translate("kff_import_success"));
                 setTimeout(() => {
                   window.location.reload();
                 }, 2000);
               })
               .catch((error) => {
-                console.error("Полная ошибка:", error); // смотрим в консоли
-                Lampa.Noty.show(
-                  "Ошибка импорта, возможно вы ввели данные неверно",
-                );
+                console.error("Полная ошибка:", error);
+                Lampa.Noty.show(Lampa.Lang.translate("kff_import_error_data"));
               });
           } else {
-            Lampa.Noty.show("Неверный PIN");
+            Lampa.Noty.show(Lampa.Lang.translate("kff_import_invalid_pin"));
           }
           Lampa.Controller.toggle("menu");
         },
@@ -267,49 +262,40 @@
     };
 
     const jsonString = JSON.stringify(settings, null, 2);
-
     const blob = new Blob([jsonString], { type: "application/json" });
-
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "lampa-desktop-settings.json";
 
     document.body.appendChild(link);
     link.click();
-
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   }
 
   function importFromFile() {
-    // Создаём элемент ввода типа "файл"
     const input = document.createElement("input");
     input.type = "file";
-
-    // Ограничиваем выбор только JSON‑файлами
     input.accept = ".json, application/json";
 
-    // Обработчик события выбора файла
     input.onchange = (e) => {
       const file = e.target.files[0];
-      if (!file) return; // Пользователь отменил выбор
+      if (!file) return;
 
-      // Читаем содержимое файла как текст
       const reader = new FileReader();
       reader.readAsText(file, "utf-8");
 
       reader.onload = () => {
         const data = reader.result;
-        console.log("Содержимое JSON‑файла:", data);
+        console.log("Содержимое JSON-файла:", data);
 
-        // Если нужно разобрать JSON (будьте готовы к ошибкам!)
         try {
           const settings = JSON.parse(data);
 
           if (typeof settings !== "object" || settings === null) {
             return {
               success: false,
-              message: "Неверный формат файла",
+              message: Lampa.Lang.translate("kff_import_error_format"),
             };
           }
 
@@ -320,30 +306,173 @@
             Object.entries(settings.lampa).forEach(([key, value]) => {
               localStorage.setItem(key, value);
             });
-            Lampa.Noty.show("Успешно, перезагрузка");
+            Lampa.Noty.show(Lampa.Lang.translate("kff_import_success"));
             setTimeout(() => {
               window.location.reload();
             }, 2000);
           }
         } catch (err) {
           console.error("Ошибка при разборе JSON:", err);
+          Lampa.Noty.show(Lampa.Lang.translate("kff_import_error_parse"));
         }
       };
 
       reader.onerror = () => {
         console.error("Ошибка при чтении файла:", reader.error);
+        Lampa.Noty.show(Lampa.Lang.translate("kff_import_error_read"));
       };
     };
 
-    // Открываем диалоговое окно выбора файла
     input.click();
   }
 
   function addAppSettings() {
     Lampa.Lang.add({
+      // Меню
       kff_export_import_menu: {
         ru: "Экспорт/Импорт (Кфф)",
         en: "Export/Import (Kff)",
+        uk: "Експорт/Імпорт (Кфф)",
+      },
+
+      // Разделители
+      kff_separator_cloud: {
+        ru: "Через облако",
+        en: "Via cloud",
+        uk: "Через хмару",
+      },
+      kff_separator_local: {
+        ru: "Локально",
+        en: "Local",
+        uk: "Локально",
+      },
+      kff_separator_unavailable: {
+        ru: "Недоступно на этом устройстве",
+        en: "Unavailable on this device",
+        uk: "Недоступно на цьому пристрої",
+      },
+
+      // Кнопки
+      kff_export_cloud_btn: {
+        ru: "Экспорт в облако",
+        en: "Export to cloud",
+        uk: "Експорт у хмару",
+      },
+      kff_export_cloud_desc: {
+        ru: "Сохранить настройки в облако. Ваши данные будут зашифрованы перед отправкой с помощью пин-кода и хранятся 1 час.",
+        en: "Save settings to the cloud. Your data will be encrypted before sending using a PIN code and stored for 1 hour.",
+        uk: "Зберегти налаштування в хмару. Ваші дані будуть зашифровані перед відправкою за допомогою пін-коду та зберігаються 1 годину.",
+      },
+      kff_import_cloud_btn: {
+        ru: "Импорт из облака",
+        en: "Import from cloud",
+        uk: "Імпорт із хмари",
+      },
+      kff_import_cloud_desc: {
+        ru: "Импортировать настройки из облака",
+        en: "Import settings from cloud",
+        uk: "Імпортувати налаштування з хмари",
+      },
+      kff_export_file_btn: {
+        ru: "Экспорт в файл",
+        en: "Export to file",
+        uk: "Експорт у файл",
+      },
+      kff_export_file_desc: {
+        ru: "Экспортировать настройки в файл",
+        en: "Export settings to file",
+        uk: "Експортувати налаштування у файл",
+      },
+      kff_import_file_btn: {
+        ru: "Импорт из файла",
+        en: "Import from file",
+        uk: "Імпорт із файлу",
+      },
+      kff_import_file_desc: {
+        ru: "Импортировать настройки из файла",
+        en: "Import settings from file",
+        uk: "Імпортувати налаштування з файлу",
+      },
+
+      // Модальные окна экспорта
+      kff_export_modal_title: {
+        ru: "Экспорт",
+        en: "Export",
+        uk: "Експорт",
+      },
+      kff_export_modal_save_id: {
+        ru: "Сохраните ID экспорта",
+        en: "Save export ID",
+        uk: "Збережіть ID експорту",
+      },
+      kff_export_modal_pin_code: {
+        ru: "И пин-код для расшифровки",
+        en: "And PIN code for decryption",
+        uk: "І пін-код для розшифрування",
+      },
+      kff_export_modal_warning: {
+        ru: "Внимание! Хранится на сервере 1 час.",
+        en: "Attention! Stored on the server for 1 hour.",
+        uk: "Увага! Зберігається на сервері 1 годину.",
+      },
+
+      // Модальные окна импорта
+      kff_import_modal_title: {
+        ru: "Импорт настроек из облака",
+        en: "Import settings from cloud",
+        uk: "Імпорт налаштувань із хмари",
+      },
+      kff_import_modal_enter_id: {
+        ru: "Введите ID",
+        en: "Enter ID",
+        uk: "Введіть ID",
+      },
+      kff_import_modal_enter_pin: {
+        ru: "Введите PIN-код",
+        en: "Enter PIN code",
+        uk: "Введіть PIN-код",
+      },
+
+      // Уведомления
+      kff_noty_waiting: {
+        ru: "Ожидайте...",
+        en: "Please wait...",
+        uk: "Зачекайте...",
+      },
+      kff_export_error: {
+        ru: "Ошибка экспорта",
+        en: "Export error",
+        uk: "Помилка експорту",
+      },
+      kff_import_success: {
+        ru: "Успешно, перезагрузка",
+        en: "Success, reloading",
+        uk: "Успішно, перезавантаження",
+      },
+      kff_import_error_data: {
+        ru: "Ошибка импорта, возможно вы ввели данные неверно",
+        en: "Import error, possibly you entered data incorrectly",
+        uk: "Помилка імпорту, можливо ви ввели дані невірно",
+      },
+      kff_import_invalid_pin: {
+        ru: "Неверный PIN",
+        en: "Invalid PIN",
+        uk: "Невірний PIN",
+      },
+      kff_import_error_format: {
+        ru: "Неверный формат файла",
+        en: "Invalid file format",
+        uk: "Невірний формат файлу",
+      },
+      kff_import_error_parse: {
+        ru: "Ошибка при разборе JSON",
+        en: "JSON parsing error",
+        uk: "Помилка при розборі JSON",
+      },
+      kff_import_error_read: {
+        ru: "Ошибка при чтении файла",
+        en: "File reading error",
+        uk: "Помилка при читанні файлу",
       },
     });
 
@@ -351,17 +480,20 @@
       component: "kff_export_import_menu",
       name: Lampa.Lang.translate("kff_export_import_menu"),
       icon: settings_app_icon,
-      // before: "account",
     });
+
+    // Разделитель "Через облако"
     Lampa.SettingsApi.addParam({
       component: "kff_export_import_menu",
       param: {
         type: "title",
       },
       field: {
-        name: "Через облако",
+        name: Lampa.Lang.translate("kff_separator_cloud"),
       },
     });
+
+    // Кнопка "Экспорт в облако"
     Lampa.SettingsApi.addParam({
       component: "kff_export_import_menu",
       param: {
@@ -369,22 +501,20 @@
         type: "button",
       },
       field: {
-        name: "Экспорт в облако",
-        description:
-          "Сохранить настройки в облако. Ваши данные будут зашифрованы перед отправкой с помощью пин-кода и хранятся 1 час.",
+        name: Lampa.Lang.translate("kff_export_cloud_btn"),
+        description: Lampa.Lang.translate("kff_export_cloud_desc"),
       },
       onChange: () => {
-        Lampa.Noty.show("Ожидайте...");
+        Lampa.Noty.show(Lampa.Lang.translate("kff_noty_waiting"));
         try {
-          let result;
-          result = { success: true, message: "Экспортируем в облако" };
           exportToCloud();
-          Lampa.Noty.show(result.message);
         } catch (error) {
           Lampa.Noty.show(error);
         }
       },
     });
+
+    // Кнопка "Импорт из облака"
     Lampa.SettingsApi.addParam({
       component: "kff_export_import_menu",
       param: {
@@ -392,30 +522,31 @@
         type: "button",
       },
       field: {
-        name: "Импорт из облака",
-        description: "Импортировать настройки из облака",
+        name: Lampa.Lang.translate("kff_import_cloud_btn"),
+        description: Lampa.Lang.translate("kff_import_cloud_desc"),
       },
       onChange: () => {
-        Lampa.Noty.show("Ожидайте...");
+        Lampa.Noty.show(Lampa.Lang.translate("kff_noty_waiting"));
         try {
-          let result;
-          result = { success: true, message: "Импортируем из облака" };
           importFromCloud();
-          Lampa.Noty.show(result.message);
         } catch (error) {
           Lampa.Noty.show(error);
         }
       },
     });
+
+    // Разделитель "Локально"
     Lampa.SettingsApi.addParam({
       component: "kff_export_import_menu",
       param: {
         type: "title",
       },
       field: {
-        name: "Локально",
+        name: Lampa.Lang.translate("kff_separator_local"),
       },
     });
+
+    // Проверка платформы для локальных операций
     if (!Lampa.Platform.desktop() && !Lampa.Platform.is("browser")) {
       Lampa.SettingsApi.addParam({
         component: "kff_export_import_menu",
@@ -423,10 +554,11 @@
           type: "title",
         },
         field: {
-          name: "Недоступно на этом устройстве",
+          name: Lampa.Lang.translate("kff_separator_unavailable"),
         },
       });
     } else {
+      // Кнопка "Экспорт в файл"
       Lampa.SettingsApi.addParam({
         component: "kff_export_import_menu",
         param: {
@@ -434,21 +566,20 @@
           type: "button",
         },
         field: {
-          name: "Экспорт в файл",
-          description: "Экспортировать настройки в файл",
+          name: Lampa.Lang.translate("kff_export_file_btn"),
+          description: Lampa.Lang.translate("kff_export_file_desc"),
         },
         onChange: () => {
-          Lampa.Noty.show("Ожидайте...");
+          Lampa.Noty.show(Lampa.Lang.translate("kff_noty_waiting"));
           try {
-            let result;
-            result = { success: true, message: "Экспортируем в файл" };
             exportToFile();
-            Lampa.Noty.show(result.message);
           } catch (error) {
             Lampa.Noty.show(error);
           }
         },
       });
+
+      // Кнопка "Импорт из файла"
       Lampa.SettingsApi.addParam({
         component: "kff_export_import_menu",
         param: {
@@ -456,16 +587,13 @@
           type: "button",
         },
         field: {
-          name: "Импорт из файла",
-          description: "Импортировать настройки из файла",
+          name: Lampa.Lang.translate("kff_import_file_btn"),
+          description: Lampa.Lang.translate("kff_import_file_desc"),
         },
         onChange: () => {
-          Lampa.Noty.show("Ожидайте...");
+          Lampa.Noty.show(Lampa.Lang.translate("kff_noty_waiting"));
           try {
-            let result;
-            result = { success: true, message: "Импортируем из файла" };
             importFromFile();
-            Lampa.Noty.show(result.message);
           } catch (error) {
             Lampa.Noty.show(error);
           }
