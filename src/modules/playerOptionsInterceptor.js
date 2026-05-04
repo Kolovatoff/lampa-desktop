@@ -1,13 +1,13 @@
-// modules/vlcOptionsInterceptor.js
+// modules/playerOptionsInterceptor.js
 const { protocol } = require("electron");
 
-class VLCOptionsInterceptor {
+class PlayerOptionsInterceptor {
   constructor() {
     this.isInitialized = false;
   }
 
   /**
-   * Инициализация перехватчика OPTIONS запросов для VLC
+   * Инициализация перехватчика OPTIONS запросов для внешних плееров
    */
   initialize() {
     if (this.isInitialized) return;
@@ -15,13 +15,11 @@ class VLCOptionsInterceptor {
     protocol.handle("http", (request) => {
       const url = new URL(request.url);
 
-      // Проверяем: это OPTIONS запрос к VLC?
       if (
         request.method === "OPTIONS" &&
         (url.hostname === "localhost" || url.hostname === "127.0.0.1") &&
         url.port === "3999"
       ) {
-        // Возвращаем ответ с CORS заголовками
         return new Response(null, {
           status: 200,
           statusText: "OK",
@@ -45,5 +43,4 @@ class VLCOptionsInterceptor {
   }
 }
 
-// Экспортируем синглтон
-module.exports = new VLCOptionsInterceptor();
+module.exports = new PlayerOptionsInterceptor();

@@ -7,7 +7,7 @@ const { setupAutoUpdater } = require("./modules/autoUpdater");
 const { registerIpcHandlers } = require("./modules/ipcHandlers");
 const torrServerManager = require("./modules/torrServerManager");
 const autoStartManager = require("./modules/autoStartManager");
-const VLCOptionsInterceptor = require("./modules/vlcOptionsInterceptor");
+const PlayerOptionsInterceptor = require("./modules/playerOptionsInterceptor");
 setupAppLifecycle();
 
 registerIpcHandlers();
@@ -27,7 +27,7 @@ if (process.argv.includes("--dev") || process.env.NODE_ENV === "development") {
 app.whenReady().then(async () => {
   if (!gotTheLock) return;
 
-  VLCOptionsInterceptor.initialize();
+  PlayerOptionsInterceptor.initialize();
 
   createWindow();
 
