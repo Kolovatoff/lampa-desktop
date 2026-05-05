@@ -1,17 +1,20 @@
 // modules/storeManager.js
 const Store = require("electron-store").default;
+const { app } = require("electron");
+const path = require("node:path");
 
 const isDev =
   process.argv.includes("--dev") || process.env.NODE_ENV === "development";
 
-let configName = "config";
+let userDataPath;
 if (isDev) {
-  configName = "config-dev";
-  console.log("🔧 Dev режим: используется config-dev.json");
+  const devAppName = `${app.getName()}-Dev`;
+  const originalUserData = app.getPath("userData");
+  userDataPath = path.join(path.dirname(originalUserData), devAppName);
 }
 
 const store = new Store({
-  name: configName,
+  cwd: userDataPath,
   defaults: {
     lampaUrl: "http://lampa.mx",
     fullscreen: false,
@@ -25,5 +28,7 @@ const store = new Store({
     defaultPlayer: "vlc",
   },
 });
+
+console.log(`📁 Store location: ${store.path}`);
 
 module.exports = store;

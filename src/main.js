@@ -10,8 +10,6 @@ const autoStartManager = require("./modules/autoStartManager");
 const PlayerOptionsInterceptor = require("./modules/playerOptionsInterceptor");
 setupAppLifecycle();
 
-registerIpcHandlers();
-
 // Меняем расположение кеша и т.п. для разработки, чтобы не мешало установленной версии
 if (process.argv.includes("--dev") || process.env.NODE_ENV === "development") {
   // Для Windows: C:\Users\%USERNAME%\AppData\Roaming\Lampa-Dev
@@ -23,6 +21,8 @@ if (process.argv.includes("--dev") || process.env.NODE_ENV === "development") {
   app.setPath("userData", devUserData);
   console.log(`🔧 Режим разработки: ${devUserData}`);
 }
+
+registerIpcHandlers();
 
 app.whenReady().then(async () => {
   if (!gotTheLock) return;
