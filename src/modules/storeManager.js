@@ -1,7 +1,17 @@
+// modules/storeManager.js
 const Store = require("electron-store").default;
 
-// Создаём экземпляр хранилища
+const isDev =
+  process.argv.includes("--dev") || process.env.NODE_ENV === "development";
+
+let configName = "config";
+if (isDev) {
+  configName = "config-dev";
+  console.log("🔧 Dev режим: используется config-dev.json");
+}
+
 const store = new Store({
+  name: configName,
   defaults: {
     lampaUrl: "http://lampa.mx",
     fullscreen: false,
@@ -12,6 +22,7 @@ const store = new Store({
     tsPath: null,
     tsAutoStart: false,
     tsPort: 8090,
+    defaultPlayer: "vlc",
   },
 });
 
