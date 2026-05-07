@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.5.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.4.0...v1.5.0) (2026-05-05)
+
+### ✨ Новые возможности
+
+- добавлена поддержка mpc-hc и mpc-be плееров и поиск/выбор плеера в настройках([3f3a83a](https://github.com/Kolovatoff/lampa-desktop/commit/3f3a83a9f51717c8fa2e002e9b65a56e20a35bb9))
+
+### ♻️ Рефакторинг
+
+- убрано упоминание vlc в OptionsInterceptor ([8472ba1](https://github.com/Kolovatoff/lampa-desktop/commit/8472ba138ee813dd82ddd5af236ffb4d8b6b8171))
+- **export-import:** добавлен перевод на несколько языков ([e66d1c0](https://github.com/Kolovatoff/lampa-desktop/commit/e66d1c0b514e74daf65e280bad2f7ce8cdb52478))
+- **plugin:** удален removeMic после [#318](https://github.com/Kolovatoff/lampa-desktop/issues/318) в yumata/lampa-source ([c86e8f4](https://github.com/Kolovatoff/lampa-desktop/commit/c86e8f466126626c5f1f24dc171b89b05a4788c0))
+
 ## [1.4.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.3.1...v1.4.0) (2026-04-10)
 
 ### ✨ Новые возможности
