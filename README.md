@@ -89,4 +89,13 @@
 
 ---
 
-⭐ Если проект полезен — поставьте звезду!
+⭐ Если проект полезен — поставьте звезду
+
+### Поддержать через Robokassa
+
+| 100₽ | 250₽ | 500₽ |
+|:---:|:---:|:---:|
+| ![QR 100₽](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=100) | ![QR 250₽](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=250) | ![QR 500₽](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=500) |
+| [Поддержать на 100₽](https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=100) | [Поддержать на 250₽](https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=250) | [Поддержать на 500₽](https://auth.robokassa.ru/merchant/Invoice/uJcZeMG59kWFwRlrYKNPfQ?FreeOutSum=500) |
+
+
