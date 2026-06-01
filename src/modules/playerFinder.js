@@ -77,6 +77,30 @@ const PLAYERS = {
       linux: { paths: [] },
     },
   },
+  mpc_qt: {
+    name: "MPC-QT",
+    description: "Media Player Classic Qute Theater",
+    platforms: {
+      win32: {
+        paths: [
+          path.join(
+            process.env.ProgramFiles || "C:\\Program Files",
+            "MPC-QT",
+            "mpc-qt64.exe",
+          ),
+          path.join(
+            process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
+            "MPC-QT",
+            "mpc-qt.exe",
+          ),
+        ],
+      },
+      darwin: { paths: [] },
+      linux: {
+        paths: ["/usr/bin/mpc-qt", "/usr/local/bin/mpc-qt", "/snap/bin/mpc-qt"],
+      },
+    },
+  },
 };
 
 class PlayerFinder {
