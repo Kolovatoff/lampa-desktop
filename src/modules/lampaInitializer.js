@@ -44,6 +44,11 @@ class LampaInitializer {
 
   async initializePlayerPath(mainWindow) {
     try {
+      if (process.platform === "darwin") {
+        console.log(`🍏 MacOS поиск плееров не требуется`);
+        return;
+      }
+
       // Проверяем, есть ли уже путь в localStorage
       const existingPath = await playerFinder.checkLocalStoragePath(mainWindow);
 
