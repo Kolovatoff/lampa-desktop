@@ -187,12 +187,9 @@ jobs:
       - name: Generate and update release body
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.build-linux.outputs.version }}
-          REPO: ${{ github.repository }}
-          RELEASE_ID: ${{ needs.release.outputs.upload_url }}
         run: |
           VERSION="${{ needs.build-linux.outputs.version }}"
-          
+
           # Generate downloads table
           cat > downloads.md << 'EOF'
           ### ⬇️ Скачать
@@ -326,16 +323,16 @@ jobs:
           </details>
           EOF
 
-          # Update the release with the changelog and downloads table
-          # First, get changelog
+          # Get changelog from build-linux job
           CHANGELOG="${{ needs.build-linux.outputs.changelog_body }}"
-          
+
           # Combine changelog with downloads table
           echo "$CHANGELOG" > full_body.md
           echo "" >> full_body.md
           cat downloads.md >> full_body.md
-          
-          # Update the release
+
+          # Update the release using --notes-file instead of --body-file
           gh release edit v$VERSION \
             --repo ${{ github.repository }} \
-            --body-file full_body.md
+            --title "v$VERSION" \
+            --notes-file full_body.md
