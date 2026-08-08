@@ -2300,6 +2300,123 @@
     }
   }
 
+  /**
+   * Translates the browser Gamepad API's standard layout to the keyboard
+   * controls already understood by Lampa. Chromium normalizes Xbox,
+   * PlayStation, Switch Pro and most generic controllers to this layout.
+   */
+  class GamepadManager {
+    constructor() {
+      this.animationFrame = null;
+      this.buttonStates = new Map();
+      this.deadzone = 0.55;
+      this.repeatDelay = 420;
+      this.repeatInterval = 110;
+
+      this.buttonMap = {
+        0: { key: "Enter", code: "Enter", keyCode: 13 }, // A / Cross
+        1: { key: "Backspace", code: "Backspace", keyCode: 8 }, // B / Circle
+        2: { key: " ", code: "Space", keyCode: 32 }, // X / Square
+        3: { key: "s", code: "KeyS", keyCode: 83 }, // Y / Triangle
+        4: { key: "PageUp", code: "PageUp", keyCode: 33 }, // LB / L1
+        5: { key: "PageDown", code: "PageDown", keyCode: 34 }, // RB / R1
+        8: { key: "Escape", code: "Escape", keyCode: 27 }, // View / Share
+        9: { key: "m", code: "KeyM", keyCode: 77 }, // Menu / Options
+        12: { key: "ArrowUp", code: "ArrowUp", keyCode: 38, repeat: true },
+        13: { key: "ArrowDown", code: "ArrowDown", keyCode: 40, repeat: true },
+        14: { key: "ArrowLeft", code: "ArrowLeft", keyCode: 37, repeat: true },
+        15: { key: "ArrowRight", code: "ArrowRight", keyCode: 39, repeat: true },
+      };
+
+      this.axisMap = [
+        { axis: 0, direction: -1, key: "ArrowLeft", code: "ArrowLeft", keyCode: 37 },
+        { axis: 0, direction: 1, key: "ArrowRight", code: "ArrowRight", keyCode: 39 },
+        { axis: 1, direction: -1, key: "ArrowUp", code: "ArrowUp", keyCode: 38 },
+        { axis: 1, direction: 1, key: "ArrowDown", code: "ArrowDown", keyCode: 40 },
+      ];
+
+      this.poll = this.poll.bind(this);
+      this.handleDisconnect = this.handleDisconnect.bind(this);
+      window.addEventListener("gamepaddisconnected", this.handleDisconnect);
+      this.animationFrame = requestAnimationFrame(this.poll);
+    }
+
+    dispatch(type, binding) {
+      const event = new KeyboardEvent(type, {
+        key: binding.key,
+        code: binding.code,
+        bubbles: true,
+        cancelable: true,
+      });
+
+      // Some Lampa versions still inspect the legacy numeric fields.
+      Object.defineProperties(event, {
+        keyCode: { get: () => binding.keyCode },
+        which: { get: () => binding.keyCode },
+      });
+      document.dispatchEvent(event);
+    }
+
+    updateControl(id, pressed, binding, now, canRepeat) {
+      const state = this.buttonStates.get(id);
+
+      if (pressed && !state) {
+        this.buttonStates.set(id, { nextRepeat: now + this.repeatDelay, binding });
+        this.dispatch("keydown", binding);
+      } else if (pressed && state && canRepeat && now >= state.nextRepeat) {
+        state.nextRepeat = now + this.repeatInterval;
+        this.dispatch("keydown", binding);
+      } else if (!pressed && state) {
+        this.dispatch("keyup", state.binding);
+        this.buttonStates.delete(id);
+      }
+    }
+
+    poll(now) {
+      const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+
+      for (const gamepad of gamepads) {
+        if (!gamepad || !gamepad.connected) continue;
+
+        for (const [index, binding] of Object.entries(this.buttonMap)) {
+          const button = gamepad.buttons[Number(index)];
+          this.updateControl(
+            `${gamepad.index}:button:${index}`,
+            !!button && (button.pressed || button.value > 0.5),
+            binding,
+            now,
+            !!binding.repeat,
+          );
+        }
+
+        for (const binding of this.axisMap) {
+          const value = gamepad.axes[binding.axis] || 0;
+          const pressed = value * binding.direction > this.deadzone;
+          const id = `${gamepad.index}:axis:${binding.axis}:${binding.direction}`;
+          this.updateControl(id, pressed, binding, now, true);
+        }
+      }
+
+      this.animationFrame = requestAnimationFrame(this.poll);
+    }
+
+    handleDisconnect(event) {
+      const prefix = `${event.gamepad.index}:`;
+      for (const [id, state] of this.buttonStates) {
+        if (id.startsWith(prefix)) {
+          this.dispatch("keyup", state.binding);
+          this.buttonStates.delete(id);
+        }
+      }
+    }
+
+    destroy() {
+      cancelAnimationFrame(this.animationFrame);
+      window.removeEventListener("gamepaddisconnected", this.handleDisconnect);
+      this.buttonStates.clear();
+    }
+  }
+
   function initInputManager() {
     const input = new InputManager({
       hideOnKeyPress: true,
@@ -2354,6 +2471,13 @@
       );
   }
 
+  function initGamepadManager() {
+    // The welcome/language screen is shown before Lampa's `appready` event,
+    // so gamepad navigation must start as soon as the desktop plugin loads.
+    if (window.appGamepadManager) window.appGamepadManager.destroy();
+    window.appGamepadManager = new GamepadManager();
+  }
+
   function overwriteToggleFullscreen() {
     Lampa.Utils.toggleFullscreen = function () {
       window.electronAPI.toggleFullscreen();
@@ -2369,6 +2493,8 @@
 
   if (!window.plugin_app_ready) {
     window.plugin_app_ready = true;
+    initGamepadManager();
+
     if (window.appready) {
       init();
     } else {
