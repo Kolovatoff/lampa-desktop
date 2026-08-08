@@ -2315,12 +2315,22 @@
 
       this.buttonMap = {
         0: { key: "Enter", code: "Enter", keyCode: 13 }, // A / Cross
-        1: { key: "Backspace", code: "Backspace", keyCode: 8 }, // B / Circle
+        1: {
+          key: "Backspace",
+          code: "Backspace",
+          keyCode: 8,
+          fallback: "back",
+        }, // B / Circle
         2: { key: " ", code: "Space", keyCode: 32 }, // X / Square
         3: { key: "s", code: "KeyS", keyCode: 83 }, // Y / Triangle
         4: { key: "PageUp", code: "PageUp", keyCode: 33 }, // LB / L1
         5: { key: "PageDown", code: "PageDown", keyCode: 34 }, // RB / R1
-        8: { key: "Escape", code: "Escape", keyCode: 27 }, // View / Share
+        8: {
+          key: "Escape",
+          code: "Escape",
+          keyCode: 27,
+          fallback: "back",
+        }, // View / Share
         9: { key: "m", code: "KeyM", keyCode: 77 }, // Menu / Options
         12: { key: "ArrowUp", code: "ArrowUp", keyCode: 38, repeat: true },
         13: { key: "ArrowDown", code: "ArrowDown", keyCode: 40, repeat: true },
@@ -2341,6 +2351,30 @@
       this.animationFrame = requestAnimationFrame(this.poll);
     }
 
+    isTextInputFocused() {
+      const element = document.activeElement;
+      return (
+        !!element &&
+        (element.matches("input, textarea, select") ||
+          element.isContentEditable)
+      );
+    }
+
+    resolveButtonBinding(index, binding) {
+      // Backspace edits text instead of navigating back while an input has
+      // focus. Escape is the conventional way to close these Lampa screens.
+      if (index === "1" && this.isTextInputFocused()) {
+        return {
+          key: "Escape",
+          code: "Escape",
+          keyCode: 27,
+          fallback: binding.fallback,
+        };
+      }
+
+      return binding;
+    }
+
     dispatch(type, binding) {
       const event = new KeyboardEvent(type, {
         key: binding.key,
@@ -2354,7 +2388,23 @@
         keyCode: { get: () => binding.keyCode },
         which: { get: () => binding.keyCode },
       });
-      document.dispatchEvent(event);
+      // Native keyboard events originate on the focused element. Dispatching
+      // there is important because Lampa's input component handles keyup on
+      // the input itself to blur it and move to the surrounding controls.
+      const target = document.activeElement || document;
+      target.dispatchEvent(event);
+
+      // Some plugin input screens temporarily disable Lampa.Keypad. Its
+      // normal back handler prevents the event's default action, so only use
+      // the controller fallback when the synthetic key was left unhandled.
+      if (
+        type === "keydown" &&
+        binding.fallback === "back" &&
+        !event.defaultPrevented &&
+        window.Lampa?.Controller?.back
+      ) {
+        window.Lampa.Controller.back();
+      }
     }
 
     updateControl(id, pressed, binding, now, canRepeat) {
@@ -2380,12 +2430,13 @@
 
         for (const [index, binding] of Object.entries(this.buttonMap)) {
           const button = gamepad.buttons[Number(index)];
+          const resolvedBinding = this.resolveButtonBinding(index, binding);
           this.updateControl(
             `${gamepad.index}:button:${index}`,
             !!button && (button.pressed || button.value > 0.5),
-            binding,
+            resolvedBinding,
             now,
-            !!binding.repeat,
+            !!resolvedBinding.repeat,
           );
         }
 
