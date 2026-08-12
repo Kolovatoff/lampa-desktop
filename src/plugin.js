@@ -471,6 +471,31 @@
         en: "Click to select from the found players in your system.",
         uk: "Натисніть, щоб вибрати зі знайдених плеєрів у вашій системі.",
       },
+      app_settings_keyboard_section: {
+        ru: "Выбор клавиатуры",
+        en: "Keyboard selection",
+        uk: "Вибір клавіатури",
+      },
+      app_settings_keyboard_default: {
+        ru: "По умолчанию",
+        en: "Default",
+        uk: "За замовчуванням",
+      },
+      app_settings_keyboard_gamepad: {
+        ru: "С геймпадом",
+        en: "With gamepad",
+        uk: "З геймпадом",
+      },
+      app_settings_keyboard_system: {
+        ru: "Системная",
+        en: "System",
+        uk: "Системна",
+      },
+      app_settings_keyboard_builtin: {
+        ru: "Встроенная",
+        en: "Built-in",
+        uk: "Вбудована",
+      },
 
       // Поддержка
       donate_support: {
@@ -584,7 +609,7 @@
         type: "title",
       },
       field: {
-        name: "Выбор клавиатуры",
+        name: Lampa.Lang.translate("app_settings_keyboard_section"),
       },
       onRender: function (element) {
         setTimeout(function () {
@@ -604,13 +629,13 @@
         name: "desktop_keyboard_regular",
         type: "select",
         values: {
-          integrate: "Системная",
-          lampa: "Встроенная",
+          integrate: Lampa.Lang.translate("app_settings_keyboard_system"),
+          lampa: Lampa.Lang.translate("app_settings_keyboard_builtin"),
         },
         default: currentKeyboardType,
       },
       field: {
-        name: "По умолчанию",
+        name: Lampa.Lang.translate("app_settings_keyboard_default"),
       },
       onRender: function (element) {
         setTimeout(function () {
@@ -625,13 +650,13 @@
         name: "desktop_keyboard_gamepad",
         type: "select",
         values: {
-          integrate: "Системная",
-          lampa: "Встроенная",
+          integrate: Lampa.Lang.translate("app_settings_keyboard_system"),
+          lampa: Lampa.Lang.translate("app_settings_keyboard_builtin"),
         },
         default: "lampa",
       },
       field: {
-        name: "С геймпадом",
+        name: Lampa.Lang.translate("app_settings_keyboard_gamepad"),
       },
       onRender: function (element) {
         setTimeout(function () {
