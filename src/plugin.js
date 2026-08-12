@@ -574,6 +574,76 @@
 
     const settingsManager = new SettingsManager("app_settings");
 
+    localStorage.removeItem("desktop_gamepad_previous_keyboard");
+    const currentKeyboardType =
+      Lampa.Storage.field("keyboard_type") || "integrate";
+    Lampa.SettingsApi.addParam({
+      component: "more",
+      param: {
+        name: "desktop_keyboard_separator",
+        type: "title",
+      },
+      field: {
+        name: "Выбор клавиатуры",
+      },
+      onRender: function (element) {
+        setTimeout(function () {
+          const anchor = $('div[data-name="keyboard_type"]');
+          anchor.hide();
+          const moreTitle = $('div[data-name="pages_save_total"]').prev(
+            ".settings-param-title",
+          );
+          element.attr("data-desktop-section", "keyboard");
+          if (moreTitle.length) moreTitle.before(element);
+        }, 0);
+      },
+    });
+    Lampa.SettingsApi.addParam({
+      component: "more",
+      param: {
+        name: "desktop_keyboard_regular",
+        type: "select",
+        values: {
+          integrate: "Системная",
+          lampa: "Встроенная",
+        },
+        default: currentKeyboardType,
+      },
+      field: {
+        name: "По умолчанию",
+      },
+      onRender: function (element) {
+        setTimeout(function () {
+          const section = $('[data-desktop-section="keyboard"]');
+          if (section.length) section.after(element);
+        }, 0);
+      },
+    });
+    Lampa.SettingsApi.addParam({
+      component: "more",
+      param: {
+        name: "desktop_keyboard_gamepad",
+        type: "select",
+        values: {
+          integrate: "Системная",
+          lampa: "Встроенная",
+        },
+        default: "lampa",
+      },
+      field: {
+        name: "С геймпадом",
+      },
+      onRender: function (element) {
+        setTimeout(function () {
+          const regular = $('div[data-name="desktop_keyboard_regular"]');
+          if (regular.length) regular.after(element);
+          else {
+            const anchor = $('div[data-name="keyboard_type"]');
+            if (anchor.length) anchor.after(element);
+          }
+        }, 0);
+      },
+    });
     if (!Lampa.Platform.macOS()) {
       Lampa.SettingsApi.addParam({
         component: "player",
@@ -2321,7 +2391,7 @@
           keyCode: 8,
           fallback: "back",
         }, // B / Circle
-        2: { key: " ", code: "Space", keyCode: 32 }, // X / Square
+        2: { action: "virtual-backspace" }, // X / Square
         3: { key: "s", code: "KeyS", keyCode: 83 }, // Y / Triangle
         4: { key: "PageUp", code: "PageUp", keyCode: 33 }, // LB / L1
         5: { key: "PageDown", code: "PageDown", keyCode: 34 }, // RB / R1
@@ -2335,20 +2405,94 @@
         12: { key: "ArrowUp", code: "ArrowUp", keyCode: 38, repeat: true },
         13: { key: "ArrowDown", code: "ArrowDown", keyCode: 40, repeat: true },
         14: { key: "ArrowLeft", code: "ArrowLeft", keyCode: 37, repeat: true },
-        15: { key: "ArrowRight", code: "ArrowRight", keyCode: 39, repeat: true },
+        15: {
+          key: "ArrowRight",
+          code: "ArrowRight",
+          keyCode: 39,
+          repeat: true,
+        },
       };
 
       this.axisMap = [
-        { axis: 0, direction: -1, key: "ArrowLeft", code: "ArrowLeft", keyCode: 37 },
-        { axis: 0, direction: 1, key: "ArrowRight", code: "ArrowRight", keyCode: 39 },
-        { axis: 1, direction: -1, key: "ArrowUp", code: "ArrowUp", keyCode: 38 },
-        { axis: 1, direction: 1, key: "ArrowDown", code: "ArrowDown", keyCode: 40 },
+        {
+          axis: 0,
+          direction: -1,
+          key: "ArrowLeft",
+          code: "ArrowLeft",
+          keyCode: 37,
+        },
+        {
+          axis: 0,
+          direction: 1,
+          key: "ArrowRight",
+          code: "ArrowRight",
+          keyCode: 39,
+        },
+        {
+          axis: 1,
+          direction: -1,
+          key: "ArrowUp",
+          code: "ArrowUp",
+          keyCode: 38,
+        },
+        {
+          axis: 1,
+          direction: 1,
+          key: "ArrowDown",
+          code: "ArrowDown",
+          keyCode: 40,
+        },
       ];
 
       this.poll = this.poll.bind(this);
       this.handleDisconnect = this.handleDisconnect.bind(this);
+      this.handlePhysicalKeyboard = this.handlePhysicalKeyboard.bind(this);
+      this.handlePointerInput = this.handlePointerInput.bind(this);
       window.addEventListener("gamepaddisconnected", this.handleDisconnect);
+      window.addEventListener("keydown", this.handlePhysicalKeyboard, true);
+      window.addEventListener("pointerdown", this.handlePointerInput, true);
       this.animationFrame = requestAnimationFrame(this.poll);
+    }
+
+    selectKeyboardFor(device) {
+      // Lampa chooses between two different keyboard implementations while
+      // creating an input form. Changing keyboard_type after that also
+      // changes global layout classes and breaks plugin input screens.
+      if (this.isInputFormOpen()) return;
+
+      const setting =
+        device === "gamepad"
+          ? "desktop_keyboard_gamepad"
+          : "desktop_keyboard_regular";
+      const fallback = device === "gamepad" ? "lampa" : "integrate";
+      Lampa.Storage.set(
+        "keyboard_type",
+        Lampa.Storage.field(setting) || fallback,
+      );
+    }
+
+    isInputFormOpen() {
+      return Boolean(
+        document.querySelector(".simple-keyboard") ||
+        document.body.classList.contains("keyboard-input--visible"),
+      );
+    }
+
+    handlePhysicalKeyboard(event) {
+      if (!event.isTrusted) return;
+
+      if (event.key === "Escape" && this.isInputFormOpen()) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        Lampa.Controller.back();
+        return;
+      }
+
+      this.selectKeyboardFor("regular");
+    }
+
+    handlePointerInput(event) {
+      if (event.isTrusted) this.selectKeyboardFor("regular");
     }
 
     isTextInputFocused() {
@@ -2361,6 +2505,10 @@
     }
 
     resolveButtonBinding(index, binding) {
+      if (index === "1" && this.isInputFormOpen()) {
+        return { action: "close-input-form" };
+      }
+
       // Backspace edits text instead of navigating back while an input has
       // focus. Escape is the conventional way to close these Lampa screens.
       if (index === "1" && this.isTextInputFocused()) {
@@ -2376,6 +2524,34 @@
     }
 
     dispatch(type, binding) {
+      if (binding.action === "close-input-form") {
+        if (type === "keydown") Lampa.Controller.back();
+        return;
+      }
+
+      if (binding.action === "virtual-backspace") {
+        if (type !== "keydown") return;
+        const button = document.querySelector(".hg-button-BKSP");
+        if (button) {
+          const keyboard = button.closest(".simple-keyboard");
+          const previous = keyboard?.querySelector(".selector.focus");
+          button.dispatchEvent(
+            new CustomEvent("hover:enter", {
+              bubbles: true,
+              detail: { target: button },
+            }),
+          );
+          if (previous && previous !== button) {
+            setTimeout(function () {
+              Lampa.Controller.collectionFocus(previous, keyboard);
+            }, 0);
+          }
+        }
+        return;
+      }
+
+      if (type === "keydown") this.selectKeyboardFor("gamepad");
+
       const event = new KeyboardEvent(type, {
         key: binding.key,
         code: binding.code,
@@ -2411,7 +2587,10 @@
       const state = this.buttonStates.get(id);
 
       if (pressed && !state) {
-        this.buttonStates.set(id, { nextRepeat: now + this.repeatDelay, binding });
+        this.buttonStates.set(id, {
+          nextRepeat: now + this.repeatDelay,
+          binding,
+        });
         this.dispatch("keydown", binding);
       } else if (pressed && state && canRepeat && now >= state.nextRepeat) {
         state.nextRepeat = now + this.repeatInterval;
@@ -2424,7 +2603,6 @@
 
     poll(now) {
       const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-
       for (const gamepad of gamepads) {
         if (!gamepad || !gamepad.connected) continue;
 
@@ -2464,6 +2642,8 @@
     destroy() {
       cancelAnimationFrame(this.animationFrame);
       window.removeEventListener("gamepaddisconnected", this.handleDisconnect);
+      window.removeEventListener("keydown", this.handlePhysicalKeyboard, true);
+      window.removeEventListener("pointerdown", this.handlePointerInput, true);
       this.buttonStates.clear();
     }
   }
@@ -2477,15 +2657,30 @@
     input
       .on(
         "keys",
-        () => {
-          Lampa.Search.open();
+        (event) => {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          setTimeout(function () {
+            Lampa.Search.open();
+          }, 0);
         },
         {
           description: Lampa.Lang.translate("hotkey_search"),
+          preventDefault: true,
           condition: () => {
+            const active = document.activeElement;
+            const textInputActive =
+              active &&
+              (active.matches("input, textarea, select") ||
+                active.isContentEditable);
+
             return !(
               document.body.classList.contains("search--open") ||
-              !!document.body.querySelector("div.modal")
+              document.body.classList.contains("keyboard-input--visible") ||
+              textInputActive ||
+              !!document.body.querySelector(
+                "div.modal, .simple-keyboard, [contenteditable='true']",
+              )
             );
           },
         },
