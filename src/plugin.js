@@ -65,6 +65,10 @@
     }
   }
 
+  function normalizeKeyboardType(value, fallback) {
+    return value === "integrate" || value === "lampa" ? value : fallback;
+  }
+
   function addAppSettings() {
     Lampa.Lang.add({
       // Основные настройки
@@ -599,9 +603,21 @@
 
     const settingsManager = new SettingsManager("app_settings");
 
-    localStorage.removeItem("desktop_gamepad_previous_keyboard");
-    const currentKeyboardType =
-      Lampa.Storage.field("keyboard_type") || "integrate";
+    const currentKeyboardType = normalizeKeyboardType(
+      Lampa.Storage.get(
+        "desktop_keyboard_regular",
+        Lampa.Storage.get("keyboard_type", "integrate"),
+      ),
+      "integrate",
+    );
+    const gamepadKeyboardType = normalizeKeyboardType(
+      Lampa.Storage.get("desktop_keyboard_gamepad", "lampa"),
+      "lampa",
+    );
+
+    Lampa.Storage.set("desktop_keyboard_regular", currentKeyboardType);
+    Lampa.Storage.set("desktop_keyboard_gamepad", gamepadKeyboardType);
+    Lampa.Storage.set("keyboard_type", currentKeyboardType);
     Lampa.SettingsApi.addParam({
       component: "more",
       param: {
@@ -637,6 +653,11 @@
       field: {
         name: Lampa.Lang.translate("app_settings_keyboard_default"),
       },
+      onChange: function (value) {
+        const type = normalizeKeyboardType(value, "integrate");
+        Lampa.Storage.set("desktop_keyboard_regular", type);
+        Lampa.Storage.set("keyboard_type", type);
+      },
       onRender: function (element) {
         setTimeout(function () {
           const section = $('[data-desktop-section="keyboard"]');
@@ -653,10 +674,15 @@
           integrate: Lampa.Lang.translate("app_settings_keyboard_system"),
           lampa: Lampa.Lang.translate("app_settings_keyboard_builtin"),
         },
-        default: "lampa",
+        default: gamepadKeyboardType,
       },
       field: {
         name: Lampa.Lang.translate("app_settings_keyboard_gamepad"),
+      },
+      onChange: function (value) {
+        const type = normalizeKeyboardType(value, "lampa");
+        Lampa.Storage.set("desktop_keyboard_gamepad", type);
+        Lampa.Storage.set("keyboard_type", type);
       },
       onRender: function (element) {
         setTimeout(function () {
@@ -2490,10 +2516,11 @@
           ? "desktop_keyboard_gamepad"
           : "desktop_keyboard_regular";
       const fallback = device === "gamepad" ? "lampa" : "integrate";
-      Lampa.Storage.set(
-        "keyboard_type",
-        Lampa.Storage.field(setting) || fallback,
+      const type = normalizeKeyboardType(
+        Lampa.Storage.get(setting, fallback),
+        fallback,
       );
+      Lampa.Storage.set("keyboard_type", type);
     }
 
     isInputFormOpen() {
