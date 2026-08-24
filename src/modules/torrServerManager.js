@@ -20,10 +20,12 @@ class TorrServerManager {
     this.currentVersion = null;
     this.executablePath = null;
     this.outputListeners = [];
+    this.gstSupport = null;
+    this.version = null;
   }
 
   // Определение платформы
-  getPlatformInfo() {
+  getPlatformInfo(useGst = null) {
     const platform = process.platform;
     const arch = process.arch;
     let osName = "";
@@ -51,15 +53,21 @@ class TorrServerManager {
       archSuffix = arch === "x64" ? "amd64" : arch;
     }
 
-    const exeName =
+    if (useGst === null) {
+      useGst = store.get("tsUseGst", false);
+    }
+
+    // Имя файла на GitHub (с суффиксом -gst или без)
+    const gstSuffix = useGst ? "-gst" : "";
+    const githubExeName =
       platform === "win32"
-        ? `TorrServer-${osName}-${archSuffix}.exe`
-        : `TorrServer-${osName}-${archSuffix}`;
+        ? `TorrServer${gstSuffix}-${osName}-${archSuffix}.exe`
+        : `TorrServer${gstSuffix}-${osName}-${archSuffix}`;
 
+    // Локальное имя файла (всегда одинаковое)
+    const localExeName = platform === "win32" ? "torrserver.exe" : "torrserver";
     const saveDir = path.join(app.getPath("userData"), "torrserver");
-    const savePath = path.join(saveDir, exeName);
-
-    // Папка для данных TorrServer (config.db и т.д.)
+    const savePath = path.join(saveDir, localExeName);
     const dataDir = path.join(saveDir, "data");
 
     return {
@@ -67,10 +75,12 @@ class TorrServerManager {
       arch,
       osName,
       archSuffix,
-      exeName,
+      githubExeName,
+      localExeName,
       saveDir,
       savePath,
       dataDir,
+      useGst,
     };
   }
 
@@ -132,15 +142,56 @@ class TorrServerManager {
       const release = await this.getLatestRelease();
       const targetVersion = version === "latest" ? release.version : version;
 
-      // Ищем нужный asset
-      const asset = release.assets.find((a) => a.name === info.exeName);
+      // Логируем текущие настройки
+      console.log(`📥 Загрузка TorrServer ${targetVersion}...`);
+      console.log(
+        `🔧 Настройка GST: ${info.useGst ? "включена" : "отключена"}`,
+      );
+      console.log(`📦 Ищем файл: ${info.githubExeName}`);
+
+      // Ищем нужный asset на GitHub
+      const asset = release.assets.find((a) => a.name === info.githubExeName);
       if (!asset) {
-        throw new Error(`Не найден файл ${info.exeName} в релизе`);
+        console.error(`❌ Файл ${info.githubExeName} не найден в релизе`);
+        console.log(
+          `📋 Доступные файлы:`,
+          release.assets.map((a) => a.name).join(", "),
+        );
+
+        // Если файл с GST не найден, пробуем без GST
+        if (info.useGst) {
+          console.log("🔄 Пробуем скачать версию без GST...");
+          const fallbackInfo = this.getPlatformInfo(false);
+          const fallbackAsset = release.assets.find(
+            (a) => a.name === fallbackInfo.githubExeName,
+          );
+
+          if (fallbackAsset) {
+            console.log("✅ Найден файл без GST, скачиваем его");
+            // Временно меняем настройку
+            store.set("tsUseGst", false);
+            store.set("tsGstEnabled", false);
+
+            // Скачиваем без GST
+            const result = await this.downloadWithInfo(version, fallbackInfo);
+            // Возвращаем настройку обратно
+            store.set("tsUseGst", info.useGst);
+            store.set("tsGstEnabled", info.useGst);
+            return {
+              ...result,
+              warning: "Файл с GST не найден, скачана версия без GST",
+              useGst: false,
+            };
+          }
+        }
+
+        throw new Error(`Не найден файл ${info.githubExeName} в релизе`);
       }
 
-      const downloadUrl = `https://github.com/YouROK/TorrServer/releases/download/${targetVersion}/${info.exeName}`;
+      // Скачиваем файл
+      const downloadUrl = `https://github.com/YouROK/TorrServer/releases/download/${targetVersion}/${info.githubExeName}`;
 
-      console.log(`📥 Загрузка TorrServer ${targetVersion}...`);
+      console.log(`🌐 URL для скачивания: ${downloadUrl}`);
 
       const response = await new Promise((resolve, reject) => {
         https
@@ -164,17 +215,179 @@ class TorrServerManager {
         await fs.chmod(info.savePath, 0o755);
       }
 
-      // Сохраняем версию в store
+      // Сохраняем информацию о версии и настройках
       store.set("tsVersion", targetVersion);
       store.set("tsPath", info.savePath);
+      store.set("tsUseGst", info.useGst);
+      store.set("tsGstEnabled", info.useGst);
 
       this.executablePath = info.savePath;
-      console.log(`✅ TorrServer успешно загружен в ${info.savePath}`);
 
-      return { success: true, path: info.savePath, version: targetVersion };
+      console.log(`✅ TorrServer успешно загружен в ${info.savePath}`);
+      console.log(
+        `🔧 Поддержка GST: ${info.useGst ? "включена" : "отключена"}`,
+      );
+
+      return {
+        success: true,
+        path: info.savePath,
+        version: targetVersion,
+        useGst: info.useGst,
+      };
     } catch (error) {
       console.error("❌ Ошибка загрузки TorrServer:", error);
       return { success: false, message: error.message };
+    }
+  }
+
+  // Вспомогательный метод для скачивания с указанными настройками
+  async downloadWithInfo(version, info) {
+    try {
+      await this.ensureDirectories();
+
+      const release = await this.getLatestRelease();
+      const targetVersion = version === "latest" ? release.version : version;
+
+      const asset = release.assets.find((a) => a.name === info.githubExeName);
+      if (!asset) {
+        throw new Error(`Не найден файл ${info.githubExeName} в релизе`);
+      }
+
+      const downloadUrl = `https://github.com/YouROK/TorrServer/releases/download/${targetVersion}/${info.githubExeName}`;
+
+      const response = await new Promise((resolve, reject) => {
+        https
+          .get(downloadUrl, (res) => {
+            if (res.statusCode === 302 || res.statusCode === 301) {
+              https.get(res.headers.location, resolve).on("error", reject);
+            } else if (res.statusCode === 200) {
+              resolve(res);
+            } else {
+              reject(new Error(`HTTP ${res.statusCode}`));
+            }
+          })
+          .on("error", reject);
+      });
+
+      const fileStream = createWriteStream(info.savePath);
+      await pipeline(response, fileStream);
+
+      if (info.platform !== "win32") {
+        await fs.chmod(info.savePath, 0o755);
+      }
+
+      store.set("tsVersion", targetVersion);
+      store.set("tsPath", info.savePath);
+      store.set("tsUseGst", info.useGst);
+      store.set("tsGstEnabled", info.useGst);
+
+      this.executablePath = info.savePath;
+
+      return {
+        success: true,
+        path: info.savePath,
+        version: targetVersion,
+        useGst: info.useGst,
+      };
+    } catch (error) {
+      console.error("❌ Ошибка загрузки:", error);
+      return { success: false, message: error.message };
+    }
+  }
+
+  // Проверка поддержки GStreamer
+  async checkGstSupport(port = 8090) {
+    try {
+      const baseUrl = `http://localhost:${port}`;
+
+      // Проверяем /gst/echo
+      const response = await fetch(`${baseUrl}/gst/echo`, {
+        signal: AbortSignal.timeout(3000),
+      });
+
+      if (response.status === 404) {
+        // Если /gst/echo возвращает 404, значит поддержки GST нет
+        this.gstSupport = false;
+        return { supported: false };
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Проверяем, что все компоненты работают
+      const allWorks =
+        data.gst_discoverer?.works &&
+        data.gstreamer?.works &&
+        data.hdr_tone_mapping?.works &&
+        data.embedded_runtime?.works;
+
+      this.gstSupport = allWorks;
+
+      return {
+        supported: allWorks,
+        details: data,
+        gstreamerVersion: data.gstreamer?.version,
+      };
+    } catch (error) {
+      console.error("Ошибка проверки поддержки GST:", error);
+      this.gstSupport = false;
+      return { supported: false, error: error.message };
+    }
+  }
+
+  // Получение версии TorrServer
+  async getVersion(port = 8090) {
+    try {
+      const response = await fetch(`http://localhost:${port}/echo`, {
+        signal: AbortSignal.timeout(3000),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const text = await response.text();
+      // Ожидаем ответ типа "MatriX.142.2"
+      const match = text.match(/MatriX\.([\d.]+)/);
+      if (match) {
+        this.version = match[1];
+        return this.version;
+      }
+
+      this.version = text.trim();
+      return this.version;
+    } catch (error) {
+      console.error("Ошибка получения версии TorrServer:", error);
+      return null;
+    }
+  }
+
+  // Получение полной информации о сервере
+  async getServerInfo(port = 8090) {
+    const info = {
+      version: null,
+      gstSupported: false,
+      gstDetails: null,
+      gstreamerVersion: null,
+    };
+
+    try {
+      // Получаем версию
+      info.version = await this.getVersion(port);
+
+      // Получаем информацию о GST
+      const gstInfo = await this.checkGstSupport(port);
+      info.gstSupported = gstInfo.supported;
+      info.gstDetails = gstInfo.details || null;
+      info.gstreamerVersion = gstInfo.gstreamerVersion || null;
+
+      return info;
+    } catch (error) {
+      console.error("Ошибка получения информации о сервере:", error);
+      return info;
     }
   }
 
@@ -192,16 +405,61 @@ class TorrServerManager {
 
       // Проверяем наличие исполняемого файла
       const savedPath = store.get("tsPath");
+      const useGst = store.get("tsUseGst", false);
 
       this.executablePath =
         savedPath && existsSync(savedPath) ? savedPath : info.savePath;
 
+      // Проверяем, установлен ли TorrServer
       if (!existsSync(this.executablePath)) {
         console.log("⚠️ Исполняемый файл не найден, скачиваем...");
         const downloadResult = await this.download();
         if (!downloadResult.success) {
           throw new Error("Не удалось скачать TorrServer");
         }
+      }
+
+      // Проверяем соответствие настройки GST с установленной версией
+      // Для этого проверяем, что версия в store соответствует текущей настройке
+      const installedVersion = store.get("tsVersion");
+      const installedGst = store.get("tsGstEnabled", false);
+
+      if (installedVersion && installedGst !== useGst) {
+        console.log("⚠️ Настройка GST изменилась, требуется переустановка");
+        console.log(
+          `   Было: ${installedGst ? "с GST" : "без GST"}, стало: ${useGst ? "с GST" : "без GST"}`,
+        );
+
+        // Удаляем старый файл
+        try {
+          if (existsSync(this.executablePath)) {
+            await fs.unlink(this.executablePath);
+            console.log(`🗑️ Удален старый файл: ${this.executablePath}`);
+          }
+        } catch (unlinkError) {
+          console.warn(
+            "⚠️ Не удалось удалить старый файл:",
+            unlinkError.message,
+          );
+        }
+
+        // Скачиваем новую версию с нужной настройкой
+        console.log("📥 Скачиваем TorrServer с новой настройкой GST...");
+        const downloadResult = await this.download();
+        if (!downloadResult.success) {
+          throw new Error("Не удалось скачать TorrServer с новой настройкой");
+        }
+
+        // Обновляем путь к исполняемому файлу
+        this.executablePath = info.savePath;
+
+        // Обновляем статус в store
+        store.set("tsGstEnabled", useGst);
+      }
+
+      // Проверяем, что файл теперь существует
+      if (!existsSync(this.executablePath)) {
+        throw new Error("Исполняемый файл не найден после установки");
       }
 
       const defaultArgs = [
@@ -216,6 +474,8 @@ class TorrServerManager {
       console.log("🚀 Запуск TorrServer с аргументами:", allArgs);
       console.log("📁 Рабочая папка:", info.saveDir);
       console.log("📁 Папка данных:", info.dataDir);
+      console.log("🔧 Поддержка GST:", useGst);
+      console.log("📄 Исполняемый файл:", this.executablePath);
 
       this.status = "starting";
 
@@ -262,7 +522,7 @@ class TorrServerManager {
       });
 
       // Ждем немного и проверяем, что процесс жив
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Проверяем, не завершился ли процесс сразу
       if (this.process && this.process.pid) {
@@ -271,11 +531,37 @@ class TorrServerManager {
           process.kill(this.process.pid, 0); // Сигнал 0 только проверяет существование
           this.status = "running";
           console.log("✅ TorrServer успешно запущен, PID:", this.process.pid);
+
+          // Получаем информацию о сервере
+          const port = defaultArgs[1];
+          let serverInfo = {
+            version: null,
+            gstSupported: null,
+            gstreamerVersion: null,
+          };
+
+          try {
+            serverInfo = await this.getServerInfo(port);
+
+            // Обновляем информацию о GST в store, если сервер ответил
+            if (serverInfo.gstSupported !== null) {
+              store.set("tsGstEnabled", serverInfo.gstSupported);
+            }
+          } catch (infoError) {
+            console.warn(
+              "⚠️ Не удалось получить информацию о сервере:",
+              infoError.message,
+            );
+          }
+
           return {
             success: true,
             message: "TorrServer запущен",
             pid: this.process.pid,
-            port: defaultArgs[1],
+            port: port,
+            version: serverInfo.version || store.get("tsVersion"),
+            gstSupported: serverInfo.gstSupported,
+            gstreamerVersion: serverInfo.gstreamerVersion,
           };
         } catch {
           // Процесс мертв
@@ -332,6 +618,41 @@ class TorrServerManager {
     return this.start(args);
   }
 
+  // Переустановка TorrServer
+  async reinstall(args = []) {
+    console.log("🔄 Переустановка TorrServer...");
+
+    // Останавливаем, если запущен
+    if (this.process) {
+      await this.stop();
+    }
+
+    // Удаляем старый файл (всегда с одинаковым именем)
+    const info = this.getPlatformInfo();
+    if (existsSync(info.savePath)) {
+      await fs.unlink(info.savePath);
+      console.log(`🗑️ Удален старый файл: ${info.savePath}`);
+    }
+
+    // Удаляем старый файл (требуется для обратной совместимости) Потом удалить.
+    const savedPath = store.get("tsPath");
+    const executablePath =
+      savedPath && existsSync(savedPath) ? savedPath : info.savePath;
+    if (existsSync(executablePath)) {
+      await fs.unlink(executablePath);
+      console.log(`🗑️ Удален старый файл: ${executablePath}`);
+    }
+
+    // Скачиваем заново с текущими настройками
+    const downloadResult = await this.download();
+    if (!downloadResult.success) {
+      return downloadResult;
+    }
+
+    // Запускаем
+    return this.start(args);
+  }
+
   // Удаление TorrServer
   async uninstall(options = { keepData: false }) {
     try {
@@ -343,11 +664,16 @@ class TorrServerManager {
       const info = this.getPlatformInfo();
       const deletedItems = [];
 
+      // Получаем актуальный путь к файлу
+      const savedPath = store.get("tsPath");
+      const executablePath =
+        savedPath && existsSync(savedPath) ? savedPath : info.savePath;
+
       // Удаляем исполняемый файл
-      if (existsSync(info.savePath)) {
-        await fs.unlink(info.savePath);
-        deletedItems.push(info.savePath);
-        console.log(`🗑️ Удален исполняемый файл: ${info.savePath}`);
+      if (existsSync(executablePath)) {
+        await fs.unlink(executablePath);
+        deletedItems.push(executablePath);
+        console.log(`🗑️ Удален исполняемый файл: ${executablePath}`);
       }
 
       // Удаляем папку с данными, если не указано keepData: true
@@ -362,23 +688,54 @@ class TorrServerManager {
         if (options.keepData) {
           // Если нужно сохранить данные, удаляем только исполняемый файл
           console.log("💾 Данные сохранены (keepData=true)");
+          // При сохранении данных - удаляем только файл TorrServer,
+          // но оставляем папку data
         } else {
-          // Иначе удаляем всю папку torrserver
-          await fs.rm(info.saveDir, { recursive: true, force: true });
-          deletedItems.push(info.saveDir);
-          console.log(`🗑️ Удалена основная папка: ${info.saveDir}`);
+          // Проверяем, что в папке больше нет файлов
+          const files = await fs.readdir(info.saveDir);
+          if (files.length === 0) {
+            await fs.rm(info.saveDir, { recursive: true, force: true });
+            deletedItems.push(info.saveDir);
+            console.log(`🗑️ Удалена основная папка: ${info.saveDir}`);
+          } else {
+            console.log(
+              `📁 Папка не удалена (содержит файлы: ${files.join(", ")})`,
+            );
+          }
         }
       }
 
-      // Очищаем store
+      // Сохраняем настройку GST перед очисткой
+      const useGst = store.get("tsUseGst", false);
+
+      // Очищаем store, но сохраняем настройку GST если keepData: true
       store.delete("tsVersion");
       store.delete("tsPath");
+
+      // Если не сохраняем данные, сбрасываем и настройку GST
+      if (!options.keepData) {
+        store.delete("tsUseGst");
+        store.delete("tsGstEnabled");
+      } else {
+        // Если сохраняем данные, проверяем что настройка GST сохранена
+        console.log(
+          `💾 Настройка GST сохранена: ${useGst ? "включена" : "отключена"}`,
+        );
+        // Убеждаемся, что настройка сохранена
+        store.set("tsUseGst", useGst);
+        store.set("tsGstEnabled", useGst);
+      }
 
       // Сбрасываем состояние менеджера
       this.executablePath = null;
       this.currentVersion = null;
+      this.gstSupport = null;
+      this.version = null;
 
       console.log("✅ TorrServer успешно удален");
+      console.log(
+        `🔧 Настройка GST: ${store.get("tsUseGst", false) ? "включена" : "отключена"}`,
+      );
 
       return {
         success: true,
@@ -387,6 +744,7 @@ class TorrServerManager {
           : "TorrServer полностью удален",
         deletedItems,
         keepData: options.keepData,
+        useGst: store.get("tsUseGst", false),
       };
     } catch (error) {
       console.error("❌ Ошибка удаления TorrServer:", error);
@@ -401,13 +759,26 @@ class TorrServerManager {
   async isInstalled() {
     const info = this.getPlatformInfo();
     const version = store.get("tsVersion");
+    const useGst = store.get("tsUseGst", false);
+    const savedPath = store.get("tsPath");
+
+    // Проверяем по сохраненному пути или по стандартному пути
+    const executablePath =
+      savedPath && existsSync(savedPath) ? savedPath : info.savePath;
+
+    const installed = existsSync(executablePath) && !!version;
 
     return {
-      installed: existsSync(info.savePath) && !!version,
-      executableExists: existsSync(info.savePath),
+      installed: installed,
+      executableExists: existsSync(executablePath),
       version: version,
-      path: info.savePath,
+      path: executablePath,
       dataDir: info.dataDir,
+      useGst: useGst,
+      gstMismatch:
+        installed && store.get("tsGstEnabled") !== undefined
+          ? store.get("tsGstEnabled") !== useGst
+          : false,
     };
   }
 
@@ -415,65 +786,182 @@ class TorrServerManager {
   async checkForUpdate() {
     try {
       const currentVersion = store.get("tsVersion");
+      const useGst = store.get("tsUseGst", false);
       const latest = await this.getLatestRelease();
 
       if (!currentVersion) {
-        return { hasUpdate: true, current: null, latest: latest.version };
+        return {
+          hasUpdate: true,
+          current: null,
+          latest: latest.version,
+          useGst: useGst,
+        };
       }
 
       const hasUpdate = latest.version !== currentVersion;
+
+      // Проверяем, есть ли нужный файл в релизе
+      const info = this.getPlatformInfo();
+      const assetExists = latest.assets.some(
+        (a) => a.name === info.githubExeName,
+      );
+
+      if (!assetExists) {
+        console.warn(`⚠️ Файл ${info.githubExeName} не найден в релизе`);
+        return {
+          hasUpdate: false,
+          current: currentVersion,
+          latest: latest.version,
+          useGst: useGst,
+          error: "Файл с текущей настройкой GST не найден в релизе",
+        };
+      }
 
       return {
         hasUpdate,
         current: currentVersion,
         latest: latest.version,
+        useGst: useGst,
       };
     } catch (error) {
       console.error("Ошибка проверки обновлений:", error);
-      return { hasUpdate: false, message: error.message };
+      return {
+        hasUpdate: false,
+        message: error.message,
+        useGst: store.get("tsUseGst", false),
+      };
     }
   }
 
   // Обновление
   async update() {
-    const check = await this.checkForUpdate();
+    try {
+      const check = await this.checkForUpdate();
 
-    if (!check.hasUpdate) {
+      if (!check.hasUpdate) {
+        return {
+          success: false,
+          message: "Уже установлена последняя версия",
+          current: check.current,
+          latest: check.latest,
+          useGst: check.useGst,
+        };
+      }
+
+      // Проверяем, есть ли файл с нужной настройкой GST в релизе
+      const info = this.getPlatformInfo();
+      const latest = await this.getLatestRelease();
+      const assetExists = latest.assets.some(
+        (a) => a.name === info.githubExeName,
+      );
+
+      if (!assetExists) {
+        return {
+          success: false,
+          message: `Файл с настройкой GST (${info.useGst ? "включена" : "отключена"}) не найден в релизе`,
+          useGst: info.useGst,
+        };
+      }
+
+      const wasRunning = this.process !== null;
+      if (wasRunning) {
+        console.log("🛑 Останавливаем TorrServer перед обновлением...");
+        await this.stop();
+      }
+
+      // Удаляем старый файл
+      const savedPath = store.get("tsPath");
+      const executablePath =
+        savedPath && existsSync(savedPath) ? savedPath : info.savePath;
+
+      if (existsSync(executablePath)) {
+        await fs.unlink(executablePath);
+        console.log(`🗑️ Удален старый файл: ${executablePath}`);
+      }
+
+      console.log(`📥 Скачиваем новую версию TorrServer ${check.latest}...`);
+      const downloadResult = await this.download("latest");
+
+      if (!downloadResult.success) {
+        throw new Error(
+          downloadResult.message || "Ошибка при скачивании обновления",
+        );
+      }
+
+      // Запускаем, если был запущен
+      if (downloadResult.success && wasRunning) {
+        console.log("🚀 Запускаем обновленный TorrServer...");
+        const startResult = await this.start();
+        if (!startResult.success) {
+          console.warn(
+            "⚠️ Не удалось автоматически запустить TorrServer после обновления",
+          );
+          return {
+            success: true,
+            message:
+              "TorrServer обновлен, но не удалось автоматически запустить",
+            version: downloadResult.version,
+            useGst: downloadResult.useGst,
+            startError: startResult.message,
+          };
+        }
+        return {
+          success: true,
+          message: "TorrServer успешно обновлен и запущен",
+          version: downloadResult.version,
+          useGst: downloadResult.useGst,
+        };
+      }
+
+      return {
+        success: true,
+        message: "TorrServer успешно обновлен",
+        version: downloadResult.version,
+        useGst: downloadResult.useGst,
+      };
+    } catch (error) {
+      console.error("❌ Ошибка обновления TorrServer:", error);
       return {
         success: false,
-        message: "Уже установлена последняя версия",
-        current: check.current,
+        message: error.message || "Ошибка при обновлении TorrServer",
+        useGst: store.get("tsUseGst", false),
       };
     }
-
-    const wasRunning = this.process !== null;
-    if (wasRunning) {
-      await this.stop();
-    }
-
-    const downloadResult = await this.download("latest");
-
-    if (downloadResult.success && wasRunning) {
-      await this.start();
-    }
-
-    return downloadResult;
   }
 
   // Получение статуса
   getStatus() {
     const info = this.getPlatformInfo();
+    const useGst = store.get("tsUseGst", false);
+
+    // Проверяем установку по сохраненному пути или по стандартному пути
+    const savedPath = store.get("tsPath");
+    const executablePath =
+      savedPath && existsSync(savedPath) ? savedPath : info.savePath;
+
+    // Проверяем, существует ли файл
+    const isInstalled =
+      existsSync(executablePath) && store.get("tsVersion") !== null;
+
     return {
       status: this.status,
       running: this.process !== null,
       pid: this.process?.pid || null,
       version: store.get("tsVersion") || null,
-      path: store.get("tsPath") || null,
+      path: executablePath || null,
       host: "localhost",
       port: store.get("tsPort") || 8090,
       dataDir: info.dataDir,
       executableDir: info.saveDir,
-      installed: existsSync(info.savePath),
+      installed: isInstalled,
+      useGst: useGst,
+      gstSupported: this.gstSupport,
+      serverVersion: this.version,
+      // Добавляем информацию о том, соответствует ли установленная версия настройке GST
+      gstMismatch:
+        isInstalled && store.get("tsGstEnabled") !== undefined
+          ? store.get("tsGstEnabled") !== useGst
+          : false,
     };
   }
 

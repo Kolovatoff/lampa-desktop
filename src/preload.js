@@ -103,7 +103,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     start: (args) => ipcRenderer.invoke("torrserver-start", args),
     stop: () => ipcRenderer.invoke("torrserver-stop"),
     restart: (args) => ipcRenderer.invoke("torrserver-restart", args),
+    reinstall: (args) => ipcRenderer.invoke("torrserver-reinstall", args),
     getStatus: () => ipcRenderer.invoke("torrserver-status"),
+    getServerInfo: (port) => ipcRenderer.invoke("torrserver-server-info", port),
+    checkGstSupport: (port) => ipcRenderer.invoke("torrserver-check-gst", port),
 
     // Установка и обновление
     download: (version) => ipcRenderer.invoke("torrserver-download", version),

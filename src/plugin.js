@@ -247,6 +247,16 @@
         en: "💾 Uninstall TorrServer (keep data)",
         uk: "💾 Видалити TorrServer (зберегти дані)",
       },
+      app_settings_ts_reinstall_name: {
+        ru: "🔄 Переустановить TorrServer",
+        en: "🔄 Reinstall TorrServer",
+        uk: "🔄 Перевстановити TorrServer",
+      },
+      app_settings_ts_reinstall_loading: {
+        ru: "Переустановка TorrServer...",
+        en: "Reinstalling TorrServer...",
+        uk: "Перевстановлення TorrServer...",
+      },
 
       // Статусы загрузки TorrServer
       app_settings_ts_start_loading: {
@@ -330,6 +340,58 @@
         ru: "Обновлений нет, у вас последняя версия",
         en: "No updates, you have the latest version",
         uk: "Оновлень немає, у вас остання версія",
+      },
+
+      // Настройки GStreamer
+      app_settings_ts_gst_field_name: {
+        ru: "Поддержка транскодирования (GStreamer)",
+        en: "Transcoding support (GStreamer)",
+        uk: "Підтримка транскодування (GStreamer)",
+      },
+      app_settings_ts_gst_field_description: {
+        ru: "Включите для поддержки транскодирования. Требуется переустановка TorrServer.",
+        en: "Enable for transcoding support. Requires TorrServer reinstall.",
+        uk: "Увімкніть для підтримки транскодування. Потребує перевстановлення TorrServer.",
+      },
+      app_settings_ts_gst_changed_notify: {
+        ru: "Настройка GStreamer изменена. Требуется переустановка TorrServer.",
+        en: "GStreamer setting changed. TorrServer reinstall required.",
+        uk: "Налаштування GStreamer змінено. Потрібне перевстановлення TorrServer.",
+      },
+      app_settings_ts_gst_enabled: {
+        ru: "✅ Поддержка GStreamer включена",
+        en: "✅ GStreamer support enabled",
+        uk: "✅ Підтримка GStreamer увімкнена",
+      },
+      app_settings_ts_gst_disabled: {
+        ru: "❌ Поддержка GStreamer отключена",
+        en: "❌ GStreamer support disabled",
+        uk: "❌ Підтримка GStreamer вимкнена",
+      },
+      app_settings_ts_gst_unknown: {
+        ru: "❓ Неизвестно (сервер не запущен)",
+        en: "❓ Unknown (server not running)",
+        uk: "❓ Невідомо (сервер не запущено)",
+      },
+      app_settings_ts_gst_status_name: {
+        ru: "Статус GStreamer",
+        en: "GStreamer status",
+        uk: "Статус GStreamer",
+      },
+      app_settings_ts_gst_version_name: {
+        ru: "Версия GStreamer",
+        en: "GStreamer version",
+        uk: "Версія GStreamer",
+      },
+      app_settings_ts_version_with_gst: {
+        ru: "{version} (с GStreamer)",
+        en: "{version} (with GStreamer)",
+        uk: "{version} (з GStreamer)",
+      },
+      app_settings_ts_version_without_gst: {
+        ru: "{version} (без GStreamer)",
+        en: "{version} (without GStreamer)",
+        uk: "{version} (без GStreamer)",
       },
 
       app_settings_web_security_field_name: {
@@ -593,12 +655,24 @@
 
     Lampa.Template.add(
       "settings_app_settings_ts",
-      '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsStatus"><div class="settings-param__name">' +
-        Lampa.Lang.translate("app_settings_ts_status_name") +
-        '</div><div class="settings-param__descr">🔄</div></div>' +
-        '<div><div class="settings-param" data-static="true" data-name="app_settings_ts_tsVersion"><div class="settings-param__name">' +
-        Lampa.Lang.translate("app_settings_ts_version_name") +
-        '</div><div class="settings-param__descr">🔄</div></div>',
+      `<div>
+        <div class="settings-param" data-static="true" data-name="app_settings_ts_tsStatus">
+          <div class="settings-param__name">${Lampa.Lang.translate("app_settings_ts_status_name")}</div>
+          <div class="settings-param__descr">🔄</div>
+        </div>
+        <div class="settings-param" data-static="true" data-name="app_settings_ts_tsVersion">
+          <div class="settings-param__name">${Lampa.Lang.translate("app_settings_ts_version_name")}</div>
+          <div class="settings-param__descr">🔄</div>
+        </div>
+        <div class="settings-param" data-static="true" data-name="app_settings_ts_tsGstStatus">
+          <div class="settings-param__name">${Lampa.Lang.translate("app_settings_ts_gst_status_name")}</div>
+          <div class="settings-param__descr">🔄</div>
+        </div>
+        <div class="settings-param" data-static="true" data-name="app_settings_ts_tsGstVersion">
+          <div class="settings-param__name">${Lampa.Lang.translate("app_settings_ts_gst_version_name")}</div>
+          <div class="settings-param__descr">🔄</div>
+        </div>
+      </div>`,
     );
 
     const settingsManager = new SettingsManager("app_settings");
@@ -1596,6 +1670,35 @@
           );
         },
       }),
+      settingsTsManager.loadAsyncSetting("tsUseGst", {
+        order: 7,
+        param: {
+          name: "app_settings_ts_tsUseGst",
+          type: "trigger",
+        },
+        field: {
+          name: Lampa.Lang.translate("app_settings_ts_gst_field_name"),
+          description: Lampa.Lang.translate(
+            "app_settings_ts_gst_field_description",
+          ),
+        },
+        onChange: async function (value) {
+          const useGst = value === "true";
+          await window.electronAPI.store.set("tsUseGst", useGst);
+
+          // Проверяем, установлен ли TorrServer
+          const status = await window.electronAPI.torrServer.getStatus();
+          if (status.installed) {
+            Lampa.Noty.show(
+              Lampa.Lang.translate("app_settings_ts_gst_changed_notify"),
+              "warning",
+              5000,
+            );
+          }
+
+          setTimeout(updateTsStatus, 500);
+        },
+      }),
     ]).then(() => {
       settingsTsManager
         .addToQueue({
@@ -1640,7 +1743,7 @@
             Lampa.Storage.set("torrserver_url", `http://localhost:${tsPort}`);
             Lampa.Storage.set("torrserver_use_link", "one");
 
-            updateTsStatus();
+            setTimeout(updateTsStatus, 1000);
 
             Lampa.Loading.stop();
             Lampa.Noty.show(
@@ -1667,7 +1770,7 @@
             );
             const result = await window.electronAPI.torrServer.stop();
             Lampa.Loading.stop();
-            updateTsStatus();
+            setTimeout(updateTsStatus, 500);
             Lampa.Noty.show(
               result.success
                 ? result.message
@@ -1699,7 +1802,7 @@
             Lampa.Storage.set("torrserver_url", `http://localhost:${tsPort}`);
             Lampa.Storage.set("torrserver_use_link", "one");
 
-            updateTsStatus();
+            setTimeout(updateTsStatus, 1000);
             Lampa.Loading.stop();
             Lampa.Noty.show(
               result.success
@@ -1710,7 +1813,41 @@
         })
         .addToQueue({
           component: "app_settings_ts",
-          order: 4.1,
+          order: 4.5,
+          param: {
+            name: "ts_reinstall",
+            type: "button",
+          },
+          field: {
+            name: Lampa.Lang.translate("app_settings_ts_reinstall_name"),
+          },
+          onChange: async () => {
+            Lampa.Loading.start(
+              () => {},
+              Lampa.Lang.translate("app_settings_ts_reinstall_loading"),
+            );
+
+            const tsPort = await window.electronAPI.store.get("tsPort");
+            const result = await window.electronAPI.torrServer.reinstall([
+              "--port",
+              tsPort,
+            ]);
+
+            Lampa.Storage.set("torrserver_url", `http://localhost:${tsPort}`);
+            Lampa.Storage.set("torrserver_use_link", "one");
+
+            setTimeout(updateTsStatus, 1000);
+            Lampa.Loading.stop();
+            Lampa.Noty.show(
+              result.success
+                ? result.message
+                : `${Lampa.Lang.translate("app_error")}: ${result.message}`,
+            );
+          },
+        })
+        .addToQueue({
+          component: "app_settings_ts",
+          order: 4.6,
           param: {
             name: "ts_check_update",
             type: "button",
@@ -1729,26 +1866,13 @@
               Lampa.Template.add(
                 "ts_update_modal",
                 `<div class="app-modal-ts-update">
-                        ` +
-                  Lampa.Lang.translate("app_settings_ts_update_found_message") +
-                  `
-                        <ul>
-                            <li>` +
-                  Lampa.Lang.translate(
-                    "app_settings_ts_update_installed",
-                  ).replace("{current_version}", result.current) +
-                  `</li>
-                            <li>` +
-                  Lampa.Lang.translate("app_settings_ts_update_latest").replace(
-                    "{latest_version}",
-                    result.latest,
-                  ) +
-                  `</li>
-                        </ul>
-                        <div class="simple-button selector ts_update">` +
-                  Lampa.Lang.translate("app_settings_ts_update_button") +
-                  `</div>
-                      </div>`,
+                    ${Lampa.Lang.translate("app_settings_ts_update_found_message")}
+                    <ul>
+                        <li>${Lampa.Lang.translate("app_settings_ts_update_installed").replace("{current_version}", result.current)}</li>
+                        <li>${Lampa.Lang.translate("app_settings_ts_update_latest").replace("{latest_version}", result.latest)}</li>
+                    </ul>
+                    <div class="simple-button selector ts_update">${Lampa.Lang.translate("app_settings_ts_update_button")}</div>
+                  </div>`,
               );
 
               let ts_update_modal_html = Lampa.Template.get(
@@ -1766,7 +1890,7 @@
                   Lampa.Loading.stop();
                   Lampa.Modal.close();
                   Lampa.Controller.toggle("settings_component");
-                  updateTsStatus();
+                  setTimeout(updateTsStatus, 1000);
                   Lampa.Noty.show(
                     result.success
                       ? Lampa.Lang.translate("app_settings_ts_update_success")
@@ -1798,7 +1922,7 @@
         })
         .addToQueue({
           component: "app_settings_ts",
-          order: 4.2,
+          order: 4.7,
           param: {
             name: "ts_open_path",
             type: "button",
@@ -1820,7 +1944,7 @@
         })
         .addToQueue({
           component: "app_settings_ts",
-          order: 4.3,
+          order: 4.8,
           param: {
             name: "ts_open_web",
             type: "button",
@@ -1830,7 +1954,6 @@
           },
           onChange: async () => {
             const status = await window.electronAPI.torrServer.getStatus();
-
             if (status.installed) {
               window.open(`http://${status.host}:${status.port}`, "_blank");
             } else {
@@ -1879,7 +2002,7 @@
               Lampa.Lang.translate("app_settings_ts_uninstall_loading"),
             );
             const result = await window.electronAPI.torrServer.uninstall();
-            updateTsStatus();
+            setTimeout(updateTsStatus, 500);
             Lampa.Noty.show(
               result.success
                 ? result.message
@@ -1906,7 +2029,7 @@
               ),
             );
             const result = await window.electronAPI.torrServer.uninstall(true);
-            updateTsStatus();
+            setTimeout(updateTsStatus, 500);
             Lampa.Noty.show(
               result.success
                 ? result.message
@@ -1918,32 +2041,135 @@
     });
 
     function updateTsStatus() {
-      window.electronAPI.torrServer.getStatus().then((status) => {
-        $('[data-name="app_settings_ts_tsVersion"]')
-          .find(".settings-param__descr")
-          .text(
-            status.version !== null
-              ? status.version
-              : Lampa.Lang.translate("app_settings_ts_status_install_prompt"),
-          );
-        $('[data-name="app_settings_ts_tsStatus"]')
-          .find(".settings-param__descr")
-          .text(
-            status.installed
-              ? status.running
+      window.electronAPI.torrServer
+        .getStatus()
+        .then(async (status) => {
+          console.log("🔄 Обновление статуса TorrServer:", status);
+
+          // Обновляем версию с информацией о GST
+          const versionElement = $(
+            '[data-name="app_settings_ts_tsVersion"]',
+          ).find(".settings-param__descr");
+
+          if (status.version !== null) {
+            const useGst = status.useGst || false;
+            let versionText = status.version;
+            if (status.running) {
+              // Если сервер запущен, пытаемся получить информацию с сервера
+              try {
+                const serverInfo =
+                  await window.electronAPI.torrServer.getServerInfo(
+                    status.port,
+                  );
+                if (serverInfo.gstSupported) {
+                  versionText = Lampa.Lang.translate(
+                    "app_settings_ts_version_with_gst",
+                  ).replace("{version}", status.version);
+                } else if (serverInfo.gstSupported === false) {
+                  versionText = Lampa.Lang.translate(
+                    "app_settings_ts_version_without_gst",
+                  ).replace("{version}", status.version);
+                } else {
+                  versionText = status.version;
+                }
+                // eslint-disable-next-line no-unused-vars
+              } catch (e) {
+                versionText = status.version;
+              }
+            } else {
+              // Если сервер остановлен, показываем версию с настройкой GST
+              versionText = useGst
                 ? Lampa.Lang.translate(
-                    "app_settings_ts_status_installed_running",
-                  )
+                    "app_settings_ts_version_with_gst",
+                  ).replace("{version}", status.version)
                 : Lampa.Lang.translate(
-                    "app_settings_ts_status_installed_stopped",
-                  )
-              : Lampa.Lang.translate("app_settings_ts_status_not_installed"),
+                    "app_settings_ts_version_without_gst",
+                  ).replace("{version}", status.version);
+            }
+            versionElement.text(versionText);
+          } else {
+            versionElement.text(
+              Lampa.Lang.translate("app_settings_ts_status_install_prompt"),
+            );
+          }
+
+          // Обновляем статус
+          $('[data-name="app_settings_ts_tsStatus"]')
+            .find(".settings-param__descr")
+            .text(
+              status.installed
+                ? status.running
+                  ? Lampa.Lang.translate(
+                      "app_settings_ts_status_installed_running",
+                    )
+                  : Lampa.Lang.translate(
+                      "app_settings_ts_status_installed_stopped",
+                    )
+                : Lampa.Lang.translate("app_settings_ts_status_not_installed"),
+            );
+
+          // Обновляем статус GStreamer
+          const gstStatusElement = $(
+            '[data-name="app_settings_ts_tsGstStatus"]',
           );
-      });
+          const gstVersionElement = $(
+            '[data-name="app_settings_ts_tsGstVersion"]',
+          );
+
+          if (gstStatusElement.length) {
+            if (status.running) {
+              try {
+                const serverInfo =
+                  await window.electronAPI.torrServer.getServerInfo(
+                    status.port,
+                  );
+                const gstText = serverInfo.gstSupported
+                  ? Lampa.Lang.translate("app_settings_ts_gst_enabled")
+                  : Lampa.Lang.translate("app_settings_ts_gst_disabled");
+                gstStatusElement.find(".settings-param__descr").text(gstText);
+
+                if (gstVersionElement.length) {
+                  gstVersionElement
+                    .find(".settings-param__descr")
+                    .text(serverInfo.gstreamerVersion || "—");
+                }
+              } catch (error) {
+                console.error("Ошибка получения информации о GST:", error);
+                gstStatusElement
+                  .find(".settings-param__descr")
+                  .text(Lampa.Lang.translate("app_settings_ts_gst_unknown"));
+                if (gstVersionElement.length) {
+                  gstVersionElement.find(".settings-param__descr").text("—");
+                }
+              }
+            } else {
+              // Сервер не запущен
+              gstStatusElement
+                .find(".settings-param__descr")
+                .text(Lampa.Lang.translate("app_settings_ts_gst_unknown"));
+              if (gstVersionElement.length) {
+                gstVersionElement.find(".settings-param__descr").text("—");
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Ошибка обновления статуса:", error);
+        });
     }
+
+    // Подписываемся на открытие настроек TorrServer для обновления статуса
     Lampa.Settings.listener.follow("open", function (e) {
       if (e.name === "app_settings_ts") {
-        updateTsStatus();
+        // Обновляем статус сразу при открытии
+        setTimeout(updateTsStatus, 100);
+      }
+    });
+
+    // Также обновляем статус при переключении на вкладку настроек
+    Lampa.Settings.listener.follow("component", function (e) {
+      if (e.component === "app_settings_ts") {
+        setTimeout(updateTsStatus, 100);
       }
     });
   }

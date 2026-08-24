@@ -18,6 +18,11 @@ function registerTorrServerHandlers() {
     return await torrServerManager.restart(args);
   });
 
+  // Переустановка
+  ipcMain.handle("torrserver-reinstall", async (event, args) => {
+    return await torrServerManager.reinstall(args);
+  });
+
   // Статус
   ipcMain.handle("torrserver-status", () => {
     return torrServerManager.getStatus();
@@ -49,6 +54,16 @@ function registerTorrServerHandlers() {
   // Проверка установки
   ipcMain.handle("torrserver-is-installed", async () => {
     return await torrServerManager.isInstalled();
+  });
+
+  // Получение информации о сервере
+  ipcMain.handle("torrserver-server-info", async (event, port) => {
+    return await torrServerManager.getServerInfo(port);
+  });
+
+  // Проверка поддержки GST
+  ipcMain.handle("torrserver-check-gst", async (event, port) => {
+    return await torrServerManager.checkGstSupport(port);
   });
 
   // Подписка на вывод
