@@ -11,7 +11,9 @@ OUT_ICNS="$ASSETS/mac.icns"
 BUILD_PY="$ROOT/scripts/build-mac-icns.py"
 
 # Prefer regenerating PNG from SVG when a renderer is available.
-if [[ -f "$MASTER_SVG" ]]; then
+# Only when FORCE_SVG_RASTER=1 — otherwise keep brand-accurate icon.png as the master
+# (SVG is traced from PNG; rasterizing SVG back must not overwrite the PNG by accident).
+if [[ "${FORCE_SVG_RASTER:-}" == "1" && -f "$MASTER_SVG" ]]; then
   if command -v rsvg-convert >/dev/null 2>&1; then
     echo "Rasterizing SVG with rsvg-convert..."
     rsvg-convert -w 1024 -h 1024 "$MASTER_SVG" -o "$MASTER_PNG"
@@ -19,7 +21,7 @@ if [[ -f "$MASTER_SVG" ]]; then
     echo "Rasterizing SVG with ImageMagick..."
     magick -background none "$MASTER_SVG" -resize 1024x1024 "$MASTER_PNG"
   else
-    echo "No SVG rasterizer found (rsvg-convert/magick); using existing ${MASTER_PNG}"
+    echo "FORCE_SVG_RASTER=1 but no rsvg-convert/magick; using existing ${MASTER_PNG}"
   fi
 fi
 
