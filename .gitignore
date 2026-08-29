@@ -92,6 +92,9 @@ typings/
 # Electron-Forge
 out/
 
+# Generated macOS iconset intermediates
+*.iconset/
+
 # Misc
 .idea
 dist

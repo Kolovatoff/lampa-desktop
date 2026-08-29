@@ -27,6 +27,11 @@ registerIpcHandlers();
 app.whenReady().then(async () => {
   if (!gotTheLock) return;
 
+  // Packaged apps use CFBundleIconFile from electron-builder; set Dock icon for yarn start/dev.
+  if (process.platform === "darwin") {
+    app.dock.setIcon(path.join(__dirname, "..", "assets", "icon.png"));
+  }
+
   PlayerOptionsInterceptor.initialize();
 
   createWindow();
