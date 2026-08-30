@@ -11,6 +11,8 @@ const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 /** Full-bleed brand background — macOS applies the squircle; do not leave transparent corners. */
 const ICON_BG = "#1D1F20";
 const ICON_BG_RGB = [0x1d, 0x1f, 0x20];
+/** Corner radius ratio for non-macOS icons (as fraction of icon size) */
+const CORNER_RADIUS_RATIO = 0.2; // 20% of icon size
 
 function ensureDirectoryExists(dir) {
   if (!fs.existsSync(dir)) {
@@ -186,7 +188,77 @@ function writePngRgba(filePath, width, height, pixels) {
   );
 }
 
-/** Rasterize SVG → opaque NxN PNGs (no transparent corners → no white Dock frame). */
+/** Apply rounded corners to RGBA pixel buffer */
+function applyRoundedCorners(pixels, width, height, radiusRatio = CORNER_RADIUS_RATIO) {
+  const out = Buffer.from(pixels); // Copy
+  const radius = Math.round(width * radiusRatio);
+  
+  // Create alpha mask for rounded corners
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let alpha = 255;
+      
+      // Check if we're in a corner region
+      const inLeftCorner = x < radius;
+      const inRightCorner = x >= width - radius;
+      const inTopCorner = y < radius;
+      const inBottomCorner = y >= height - radius;
+      
+      if (inLeftCorner && inTopCorner) {
+        // Top-left corner
+        const dx = radius - x;
+        const dy = radius - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius) {
+          alpha = 0;
+        } else if (dist > radius - 1) {
+          alpha = Math.round(255 * (radius - dist));
+        }
+      } else if (inRightCorner && inTopCorner) {
+        // Top-right corner
+        const dx = x - (width - radius);
+        const dy = radius - y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius) {
+          alpha = 0;
+        } else if (dist > radius - 1) {
+          alpha = Math.round(255 * (radius - dist));
+        }
+      } else if (inLeftCorner && inBottomCorner) {
+        // Bottom-left corner
+        const dx = radius - x;
+        const dy = y - (height - radius);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius) {
+          alpha = 0;
+        } else if (dist > radius - 1) {
+          alpha = Math.round(255 * (radius - dist));
+        }
+      } else if (inRightCorner && inBottomCorner) {
+        // Bottom-right corner
+        const dx = x - (width - radius);
+        const dy = y - (height - radius);
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > radius) {
+          alpha = 0;
+        } else if (dist > radius - 1) {
+          alpha = Math.round(255 * (radius - dist));
+        }
+      }
+      
+      const idx = (y * width + x) * 4;
+      if (alpha === 0) {
+        out[idx + 3] = 0;
+      } else if (alpha < 255) {
+        out[idx + 3] = Math.round((out[idx + 3] * alpha) / 255);
+      }
+    }
+  }
+  
+  return out;
+}
+
+/** Rasterize SVG → opaque NxN PNGs with rounded corners (except for macOS use) */
 function generatePNGs() {
   console.log("📸 Генерация PNG иконок...");
   const pngDir = path.join(BUILD_DIR, "png");
@@ -206,17 +278,26 @@ function generatePNGs() {
       { stdio: "inherit" },
     );
     assertMasterLooksLikeLogo(masterPath);
-    console.log("✅ PNG master: 1024x1024");
+    
+    // Apply rounded corners to master PNG
+    const { width, height, pixels } = parsePng(masterPath);
+    const roundedPixels = applyRoundedCorners(pixels, width, height);
+    writePngRgba(masterPath, width, height, roundedPixels);
+    console.log("✅ PNG master с закруглениями: 1024x1024");
 
+    // Generate all other sizes from the master (which already has rounded corners)
     for (const size of PNG_SIZES) {
       if (size === 1024) continue;
       const pngPath = path.join(pngDir, `${size}x${size}.png`);
+      
+      // Resize from master which already has rounded corners
       execSync(
         `${prefix} "${masterPath}" -resize ${size}x${size}! ` +
-          `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${pngPath}"`,
+          `-alpha on -depth 8 -strip "PNG32:${pngPath}"`,
         { stdio: "inherit" },
       );
-      console.log(`✅ PNG: ${size}x${size}`);
+      
+      console.log(`✅ PNG с закруглениями: ${size}x${size}`);
     }
     return pngDir;
   }
@@ -265,14 +346,18 @@ function generatePNGsWithMacTools(pngDir) {
 
   const { width, height, pixels } = parsePng(master1024);
   flattenOntoBg(pixels);
-  writePngRgba(path.join(pngDir, "1024x1024.png"), width, height, pixels);
-  console.log("✅ PNG: 1024x1024");
+  
+  // Apply rounded corners to master
+  const roundedPixels = applyRoundedCorners(pixels, width, height);
+  writePngRgba(path.join(pngDir, "1024x1024.png"), width, height, roundedPixels);
+  console.log("✅ PNG с закруглениями: 1024x1024");
 
+  // Generate all other sizes from the master with rounded corners
   for (const size of PNG_SIZES) {
     if (size === 1024) continue;
-    const scaled = resizeNearest(pixels, width, height, size, size);
+    const scaled = resizeNearest(roundedPixels, width, height, size, size);
     writePngRgba(path.join(pngDir, `${size}x${size}.png`), size, size, scaled);
-    console.log(`✅ PNG: ${size}x${size}`);
+    console.log(`✅ PNG с закруглениями: ${size}x${size}`);
   }
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -296,10 +381,11 @@ function createIco(pngDir) {
     const sizes = [16, 24, 32, 48, 64, 128, 256];
     const pngFiles = sizes
       .map((s) => path.join(pngDir, `${s}x${s}.png`))
-      .join(" ");
+      .filter((file) => fs.existsSync(file));
+    
     const prefix = im === "magick" ? "magick" : "convert";
     execSync(
-      `${prefix} ${pngFiles} -colors 256 -background '${ICON_BG}' "${icoPath}"`,
+      `${prefix} ${pngFiles.join(" ")} "${icoPath}"`,
       {
         stdio: "inherit",
       },
@@ -343,14 +429,45 @@ function createIcnsWithIconutil(pngDir) {
       { size: 1024, name: "icon_512x512@2x.png" },
     ];
 
+    // For macOS, we need to use the original PNGs without rounded corners
+    // We'll need to regenerate or use a separate source
+    const macPngDir = path.join(BUILD_DIR, ".mac-png");
+    ensureDirectoryExists(macPngDir);
+    
+    // Generate macOS PNGs without rounded corners
     const im = resolveImageMagick();
+    if (im) {
+      const prefix = im === "magick" ? "magick" : "convert";
+      
+      // Generate master without rounded corners
+      const masterPath = path.join(macPngDir, "1024x1024.png");
+      execSync(
+        `${prefix} -density 144 -background '${ICON_BG}' "${SVG_PATH}" ` +
+          `-resize 1024x1024 -gravity center -background '${ICON_BG}' -extent 1024x1024 ` +
+          `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${masterPath}"`,
+        { stdio: "inherit" },
+      );
+      
+      // Generate all sizes without rounded corners
+      for (const size of PNG_SIZES) {
+        if (size === 1024) continue;
+        const pngPath = path.join(macPngDir, `${size}x${size}.png`);
+        execSync(
+          `${prefix} "${masterPath}" -resize ${size}x${size}! ` +
+            `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${pngPath}"`,
+          { stdio: "inherit" },
+        );
+      }
+    }
+
     for (const { size, name } of iconSizes) {
-      const src = path.join(pngDir, `${size}x${size}.png`);
+      const src = path.join(macPngDir, `${size}x${size}.png`);
       const dst = path.join(iconsetDir, name);
       if (!fs.existsSync(src)) {
         continue;
       }
       // iconutil expects 8-bit PNG with alpha channel.
+      // macOS icons should NOT have rounded corners — macOS applies its own mask
       if (im) {
         const prefix = im === "magick" ? "magick" : "convert";
         execSync(
@@ -368,10 +485,15 @@ function createIcnsWithIconutil(pngDir) {
     console.log(`✅ ICNS создан: ${icnsPath}`);
 
     fs.rmSync(iconsetDir, { recursive: true, force: true });
+    fs.rmSync(macPngDir, { recursive: true, force: true });
     return true;
   } catch (error) {
     console.error("❌ Ошибка создания ICNS через iconutil:", error.message);
     fs.rmSync(path.join(macDir, "icon.iconset"), {
+      recursive: true,
+      force: true,
+    });
+    fs.rmSync(path.join(BUILD_DIR, ".mac-png"), {
       recursive: true,
       force: true,
     });
@@ -402,9 +524,39 @@ function createIcnsWithPngPack(pngDir) {
   ];
 
   try {
+    // For macOS fallback, we need PNGs without rounded corners
+    const macPngDir = path.join(BUILD_DIR, ".mac-png");
+    ensureDirectoryExists(macPngDir);
+    
+    // Generate macOS PNGs without rounded corners
+    const im = resolveImageMagick();
+    if (im) {
+      const prefix = im === "magick" ? "magick" : "convert";
+      
+      // Generate master without rounded corners
+      const masterPath = path.join(macPngDir, "1024x1024.png");
+      execSync(
+        `${prefix} -density 144 -background '${ICON_BG}' "${SVG_PATH}" ` +
+          `-resize 1024x1024 -gravity center -background '${ICON_BG}' -extent 1024x1024 ` +
+          `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${masterPath}"`,
+        { stdio: "inherit" },
+      );
+      
+      // Generate all sizes without rounded corners
+      for (const size of PNG_SIZES) {
+        if (size === 1024) continue;
+        const pngPath = path.join(macPngDir, `${size}x${size}.png`);
+        execSync(
+          `${prefix} "${masterPath}" -resize ${size}x${size}! ` +
+            `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${pngPath}"`,
+          { stdio: "inherit" },
+        );
+      }
+    }
+
     const chunks = [];
     for (const { type, size } of entries) {
-      const pngPath = path.join(pngDir, `${size}x${size}.png`);
+      const pngPath = path.join(macPngDir, `${size}x${size}.png`);
       if (!fs.existsSync(pngPath)) {
         continue;
       }
@@ -416,6 +568,7 @@ function createIcnsWithPngPack(pngDir) {
       chunks.push(Buffer.concat([header, png]));
     }
     if (chunks.length === 0) {
+      fs.rmSync(macPngDir, { recursive: true, force: true });
       return false;
     }
     const body = Buffer.concat(chunks);
@@ -424,9 +577,15 @@ function createIcnsWithPngPack(pngDir) {
     fileHeader.writeUInt32BE(8 + body.length, 4);
     fs.writeFileSync(icnsPath, Buffer.concat([fileHeader, body]));
     console.log(`✅ ICNS создан: ${icnsPath}`);
+    
+    fs.rmSync(macPngDir, { recursive: true, force: true });
     return true;
   } catch (error) {
     console.error("❌ Ошибка PNG-pack ICNS:", error.message);
+    fs.rmSync(path.join(BUILD_DIR, ".mac-png"), {
+      recursive: true,
+      force: true,
+    });
     return false;
   }
 }
