@@ -7,6 +7,7 @@
     "type": "git",
     "url": "https://github.com/Kolovatoff/lampa-desktop"
   },
+  "desktopName": "lampa-desktop",
   "main": "src/main.js",
   "engines": {
     "node": ">=24.0.0 <25.0.0",
@@ -24,7 +25,8 @@
     "lint:prettier": "prettier . --check",
     "lintfix": "eslint . --fix && prettier --write --list-different .",
     "release:changelog": "commit-and-tag-version",
-    "release": "yarn release:changelog && git push --follow-tags origin $CI_COMMIT_REF_NAME"
+    "release": "yarn release:changelog && git push --follow-tags origin $CI_COMMIT_REF_NAME",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "commit-and-tag-version": {
     "scripts": {
@@ -55,6 +57,10 @@
     "appId": "com.lampa.desktop",
     "productName": "Lampa",
     "artifactName": "lampa-${arch}-${version}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
     "linux": {
       "target": [
         {
@@ -73,12 +79,23 @@
         },
         "AppImage"
       ],
-      "icon": "assets/linux.icns",
-      "category": "Multimedia"
+      "icon": "build/icons/linux",
+      "category": "Multimedia",
+      "desktop": {
+        "entry": {
+          "Name": "Lampa",
+          "Comment": "Десктопное приложение-клиент для Lampa",
+          "Categories": "Multimedia;",
+          "StartupWMClass": "lampa-desktop",
+          "MimeType": "application/x-lampa"
+        }
+      },
+      "maintainer": "Kirill Kolovatov <kirill@kolovatov.ru>",
+      "vendor": "Kolovatoff",
+      "executableName": "lampa-desktop"
     },
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "assets/mac.icns",
       "target": [
         {
           "target": "dmg",
@@ -87,7 +104,8 @@
             "arm64"
           ]
         }
-      ]
+      ],
+      "icon": "build/icons/mac/icon.icns"
     },
     "win": {
       "target": [
@@ -100,7 +118,7 @@
           ]
         }
       ],
-      "icon": "assets/win.ico",
+      "icon": "build/icons/win/icon.ico",
       "verifyUpdateCodeSignature": true
     },
     "nsis": {
@@ -109,8 +127,8 @@
       "allowElevation": true,
       "allowToChangeInstallationDirectory": true,
       "runAfterFinish": false,
-      "installerIcon": "assets/win.ico",
-      "uninstallerIcon": "assets/win.ico",
+      "installerIcon": "build/icons/win/icon.ico",
+      "uninstallerIcon": "build/icons/win/icon.ico",
       "license": "LICENSE"
     },
     "publish": {
@@ -120,10 +138,11 @@
     }
   },
   "files": [
-    "assets/**/*",
     "src/**/*",
     "node_modules/*",
-    "!dist/*"
+    "build/icon.svg",
+    "build/icon.png",
+    "build/icons/**/*"
   ],
   "packageManager": "yarn@4.9.4"
 }

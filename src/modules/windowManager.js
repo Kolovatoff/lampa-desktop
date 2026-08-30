@@ -72,6 +72,7 @@ function createWindow() {
     },
     show: false,
     titleBarStyle: "default",
+    icon: path.join(__dirname, '../build/icon.png'),
     fullscreen: fullscreenConfig.fullscreen,
   };
 
