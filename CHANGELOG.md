@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.5.1...v1.6.0) (2026-08-30)
+
+### ✨ Новые возможности
+
+- добавлена поддержка TorrServer GST ([f4a9a99](https://github.com/Kolovatoff/lampa-desktop/commit/f4a9a99c9af5cd416061217423a6db6fd30c8397))
+- добавлен скрипт генерирования иконок приложения ([6c74f0f](https://github.com/Kolovatoff/lampa-desktop/commit/6c74f0fde03295dd2259f5e5196cc8a364bfb754))
+- добавлено управление с геймпада при помощи @EugeneK32 ([a0802ab](https://github.com/Kolovatoff/lampa-desktop/commit/a0802ab1889e8dca4163279996dac90e65ba08bc)) [#8](https://github.com/Kolovatoff/lampa-desktop/commit/8)
+- обновить иконки приложения и скрипт генерации при помощи @pavelpikta ([fcf2c52](https://github.com/Kolovatoff/lampa-desktop/commit/fcf2c5266d06e2b65f449e5fca40065d0a61a60b)) [#11](https://github.com/Kolovatoff/lampa-desktop/commit/11)
+
+### Новые участники
+- @EugeneK32 внёс свой первый вклад в [#8](https://github.com/Kolovatoff/lampa-desktop/commit/8)
+- @pavelpikta внёс свой первый вклад в [#11](https://github.com/Kolovatoff/lampa-desktop/commit/11)
+
+
 ## [1.5.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.5.0...v1.5.1) (2026-06-06)
 
 ### 🐛 Исправления

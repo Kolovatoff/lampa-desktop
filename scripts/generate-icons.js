@@ -1,15 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const zlib = require('zlib');
-const { execSync } = require('child_process');
+const fs = require("fs");
+const path = require("path");
+const zlib = require("zlib");
+const { execSync } = require("child_process");
 
-const SVG_PATH = path.join(__dirname, '../assets/icon.svg');
-const BUILD_DIR = path.join(__dirname, '../build/icons');
-const PROJECT_ROOT = path.join(__dirname, '..');
+const SVG_PATH = path.join(__dirname, "../assets/icon.svg");
+const BUILD_DIR = path.join(__dirname, "../build/icons");
+const PROJECT_ROOT = path.join(__dirname, "..");
 
 const PNG_SIZES = [16, 24, 32, 48, 64, 128, 256, 512, 1024];
 /** Full-bleed brand background — macOS applies the squircle; do not leave transparent corners. */
-const ICON_BG = '#1D1F20';
+const ICON_BG = "#1D1F20";
 const ICON_BG_RGB = [0x1d, 0x1f, 0x20];
 
 function ensureDirectoryExists(dir) {
@@ -19,9 +19,9 @@ function ensureDirectoryExists(dir) {
 }
 
 function resolveImageMagick() {
-  for (const cmd of ['magick', 'convert']) {
+  for (const cmd of ["magick", "convert"]) {
     try {
-      execSync(`which ${cmd}`, { stdio: 'ignore' });
+      execSync(`which ${cmd}`, { stdio: "ignore" });
       return cmd;
     } catch {
       // try next
@@ -32,7 +32,13 @@ function resolveImageMagick() {
 
 function parsePng(filePath) {
   const data = fs.readFileSync(filePath);
-  if (data.subarray(0, 8).compare(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) !== 0) {
+  if (
+    data
+      .subarray(0, 8)
+      .compare(
+        Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+      ) !== 0
+  ) {
     throw new Error(`not a PNG: ${filePath}`);
   }
   let pos = 8;
@@ -42,16 +48,16 @@ function parsePng(filePath) {
   const idatParts = [];
   while (pos < data.length) {
     const length = data.readUInt32BE(pos);
-    const type = data.toString('ascii', pos + 4, pos + 8);
+    const type = data.toString("ascii", pos + 4, pos + 8);
     const chunk = data.subarray(pos + 8, pos + 8 + length);
     pos += 12 + length;
-    if (type === 'IHDR') {
+    if (type === "IHDR") {
       width = chunk.readUInt32BE(0);
       height = chunk.readUInt32BE(4);
       colorType = chunk[9];
-    } else if (type === 'IDAT') {
+    } else if (type === "IDAT") {
       idatParts.push(chunk);
-    } else if (type === 'IEND') {
+    } else if (type === "IEND") {
       break;
     }
   }
@@ -159,7 +165,7 @@ function writePngRgba(filePath, width, height, pixels) {
   const chunk = (type, body) => {
     const len = Buffer.alloc(4);
     len.writeUInt32BE(body.length, 0);
-    const typeBuf = Buffer.from(type, 'ascii');
+    const typeBuf = Buffer.from(type, "ascii");
     const crc = Buffer.alloc(4);
     crc.writeUInt32BE(zlib.crc32(Buffer.concat([typeBuf, body])) >>> 0, 0);
     return Buffer.concat([len, typeBuf, body, crc]);
@@ -173,34 +179,34 @@ function writePngRgba(filePath, width, height, pixels) {
     filePath,
     Buffer.concat([
       Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-      chunk('IHDR', ihdr),
-      chunk('IDAT', compressed),
-      chunk('IEND', Buffer.alloc(0))
-    ])
+      chunk("IHDR", ihdr),
+      chunk("IDAT", compressed),
+      chunk("IEND", Buffer.alloc(0)),
+    ]),
   );
 }
 
 /** Rasterize SVG → opaque NxN PNGs (no transparent corners → no white Dock frame). */
 function generatePNGs() {
-  console.log('📸 Генерация PNG иконок...');
-  const pngDir = path.join(BUILD_DIR, 'png');
+  console.log("📸 Генерация PNG иконок...");
+  const pngDir = path.join(BUILD_DIR, "png");
   ensureDirectoryExists(pngDir);
 
-  const masterPath = path.join(pngDir, '1024x1024.png');
+  const masterPath = path.join(pngDir, "1024x1024.png");
   const im = resolveImageMagick();
 
   if (im) {
-    const prefix = im === 'magick' ? 'magick' : 'convert';
+    const prefix = im === "magick" ? "magick" : "convert";
     // Render full SVG viewBox once (per-size SVG -resize crops/zooms incorrectly in IM).
     // density keeps the 1500×1500 canvas framed; flatten onto brand bg for opaque edges.
     execSync(
       `${prefix} -density 144 -background '${ICON_BG}' "${SVG_PATH}" ` +
         `-resize 1024x1024 -gravity center -background '${ICON_BG}' -extent 1024x1024 ` +
         `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${masterPath}"`,
-      { stdio: 'inherit' }
+      { stdio: "inherit" },
     );
     assertMasterLooksLikeLogo(masterPath);
-    console.log('✅ PNG master: 1024x1024');
+    console.log("✅ PNG master: 1024x1024");
 
     for (const size of PNG_SIZES) {
       if (size === 1024) continue;
@@ -208,16 +214,18 @@ function generatePNGs() {
       execSync(
         `${prefix} "${masterPath}" -resize ${size}x${size}! ` +
           `-alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${pngPath}"`,
-        { stdio: 'inherit' }
+        { stdio: "inherit" },
       );
       console.log(`✅ PNG: ${size}x${size}`);
     }
     return pngDir;
   }
 
-  console.log('⚠️ ImageMagick не найден — растр через qlmanage/sips + Node flatten');
+  console.log(
+    "⚠️ ImageMagick не найден — растр через qlmanage/sips + Node flatten",
+  );
   generatePNGsWithMacTools(pngDir);
-  assertMasterLooksLikeLogo(path.join(pngDir, '1024x1024.png'));
+  assertMasterLooksLikeLogo(path.join(pngDir, "1024x1024.png"));
   return pngDir;
 }
 
@@ -232,29 +240,33 @@ function assertMasterLooksLikeLogo(pngPath) {
   // Full lamp mark is roughly 25–45% white; solid/crop failures are ~0% or >55%.
   if (ratio < 0.15 || ratio > 0.55) {
     throw new Error(
-      `bad master icon: white_ratio=${ratio.toFixed(3)} white=${white} size=${width}x${height}`
+      `bad master icon: white_ratio=${ratio.toFixed(3)} white=${white} size=${width}x${height}`,
     );
   }
   console.log(`✅ master ok: white_ratio=${ratio.toFixed(3)}`);
 }
 
 function generatePNGsWithMacTools(pngDir) {
-  const tmpDir = path.join(BUILD_DIR, '.tmp-raster');
+  const tmpDir = path.join(BUILD_DIR, ".tmp-raster");
   ensureDirectoryExists(tmpDir);
 
-  execSync(`qlmanage -t -s 1024 -o "${tmpDir}" "${SVG_PATH}"`, { stdio: 'inherit' });
+  execSync(`qlmanage -t -s 1024 -o "${tmpDir}" "${SVG_PATH}"`, {
+    stdio: "inherit",
+  });
   const rendered = path.join(tmpDir, `${path.basename(SVG_PATH)}.png`);
   if (!fs.existsSync(rendered)) {
     throw new Error(`qlmanage не создал превью: ${rendered}`);
   }
 
-  const master1024 = path.join(tmpDir, 'master-1024.png');
-  execSync(`sips -z 1024 1024 "${rendered}" --out "${master1024}"`, { stdio: 'inherit' });
+  const master1024 = path.join(tmpDir, "master-1024.png");
+  execSync(`sips -z 1024 1024 "${rendered}" --out "${master1024}"`, {
+    stdio: "inherit",
+  });
 
   const { width, height, pixels } = parsePng(master1024);
   flattenOntoBg(pixels);
-  writePngRgba(path.join(pngDir, '1024x1024.png'), width, height, pixels);
-  console.log('✅ PNG: 1024x1024');
+  writePngRgba(path.join(pngDir, "1024x1024.png"), width, height, pixels);
+  console.log("✅ PNG: 1024x1024");
 
   for (const size of PNG_SIZES) {
     if (size === 1024) continue;
@@ -267,33 +279,40 @@ function generatePNGsWithMacTools(pngDir) {
 }
 
 function createIco(pngDir) {
-  console.log('🪟 Создание ICO для Windows...');
-  const winDir = path.join(BUILD_DIR, 'win');
+  console.log("🪟 Создание ICO для Windows...");
+  const winDir = path.join(BUILD_DIR, "win");
   ensureDirectoryExists(winDir);
-  const icoPath = path.join(winDir, 'icon.ico');
+  const icoPath = path.join(winDir, "icon.ico");
 
   const im = resolveImageMagick();
   if (!im) {
-    console.warn('⚠️ ImageMagick не найден — пропуск ICO (нужен для Windows-сборки)');
+    console.warn(
+      "⚠️ ImageMagick не найден — пропуск ICO (нужен для Windows-сборки)",
+    );
     return;
   }
 
   try {
     const sizes = [16, 24, 32, 48, 64, 128, 256];
-    const pngFiles = sizes.map(s => path.join(pngDir, `${s}x${s}.png`)).join(' ');
-    const prefix = im === 'magick' ? 'magick' : 'convert';
-    execSync(`${prefix} ${pngFiles} -colors 256 -background '${ICON_BG}' "${icoPath}"`, {
-      stdio: 'inherit'
-    });
+    const pngFiles = sizes
+      .map((s) => path.join(pngDir, `${s}x${s}.png`))
+      .join(" ");
+    const prefix = im === "magick" ? "magick" : "convert";
+    execSync(
+      `${prefix} ${pngFiles} -colors 256 -background '${ICON_BG}' "${icoPath}"`,
+      {
+        stdio: "inherit",
+      },
+    );
     console.log(`✅ ICO создан: ${icoPath}`);
   } catch (error) {
-    console.error('❌ Ошибка создания ICO:', error.message);
+    console.error("❌ Ошибка создания ICO:", error.message);
   }
 }
 
 function isIconutilAvailable() {
   try {
-    execSync('which iconutil', { stdio: 'ignore' });
+    execSync("which iconutil", { stdio: "ignore" });
     return true;
   } catch {
     return false;
@@ -301,27 +320,27 @@ function isIconutilAvailable() {
 }
 
 function createIcnsWithIconutil(pngDir) {
-  console.log('🍎 Создание ICNS через iconutil...');
-  const macDir = path.join(BUILD_DIR, 'mac');
+  console.log("🍎 Создание ICNS через iconutil...");
+  const macDir = path.join(BUILD_DIR, "mac");
   ensureDirectoryExists(macDir);
-  const icnsPath = path.join(macDir, 'icon.icns');
+  const icnsPath = path.join(macDir, "icon.icns");
 
   try {
-    const iconsetDir = path.join(macDir, 'icon.iconset');
+    const iconsetDir = path.join(macDir, "icon.iconset");
     fs.rmSync(iconsetDir, { recursive: true, force: true });
     ensureDirectoryExists(iconsetDir);
 
     const iconSizes = [
-      { size: 16, name: 'icon_16x16.png' },
-      { size: 32, name: 'icon_16x16@2x.png' },
-      { size: 32, name: 'icon_32x32.png' },
-      { size: 64, name: 'icon_32x32@2x.png' },
-      { size: 128, name: 'icon_128x128.png' },
-      { size: 256, name: 'icon_128x128@2x.png' },
-      { size: 256, name: 'icon_256x256.png' },
-      { size: 512, name: 'icon_256x256@2x.png' },
-      { size: 512, name: 'icon_512x512.png' },
-      { size: 1024, name: 'icon_512x512@2x.png' }
+      { size: 16, name: "icon_16x16.png" },
+      { size: 32, name: "icon_16x16@2x.png" },
+      { size: 32, name: "icon_32x32.png" },
+      { size: 64, name: "icon_32x32@2x.png" },
+      { size: 128, name: "icon_128x128.png" },
+      { size: 256, name: "icon_128x128@2x.png" },
+      { size: 256, name: "icon_256x256.png" },
+      { size: 512, name: "icon_256x256@2x.png" },
+      { size: 512, name: "icon_512x512.png" },
+      { size: 1024, name: "icon_512x512@2x.png" },
     ];
 
     const im = resolveImageMagick();
@@ -333,10 +352,10 @@ function createIcnsWithIconutil(pngDir) {
       }
       // iconutil expects 8-bit PNG with alpha channel.
       if (im) {
-        const prefix = im === 'magick' ? 'magick' : 'convert';
+        const prefix = im === "magick" ? "magick" : "convert";
         execSync(
           `${prefix} "${src}" -alpha on -background '${ICON_BG}' -alpha background -depth 8 -strip "PNG32:${dst}"`,
-          { stdio: 'inherit' }
+          { stdio: "inherit" },
         );
       } else {
         fs.copyFileSync(src, dst);
@@ -344,39 +363,42 @@ function createIcnsWithIconutil(pngDir) {
     }
 
     execSync(`iconutil -c icns -o "${icnsPath}" "${iconsetDir}"`, {
-      stdio: 'inherit'
+      stdio: "inherit",
     });
     console.log(`✅ ICNS создан: ${icnsPath}`);
 
     fs.rmSync(iconsetDir, { recursive: true, force: true });
     return true;
   } catch (error) {
-    console.error('❌ Ошибка создания ICNS через iconutil:', error.message);
-    fs.rmSync(path.join(macDir, 'icon.iconset'), { recursive: true, force: true });
+    console.error("❌ Ошибка создания ICNS через iconutil:", error.message);
+    fs.rmSync(path.join(macDir, "icon.iconset"), {
+      recursive: true,
+      force: true,
+    });
     return false;
   }
 }
 
 /** Write a valid ICNS from PNG sizes when iconutil is unavailable. */
 function createIcnsWithPngPack(pngDir) {
-  console.log('🍎 Создание ICNS через PNG-pack (fallback)...');
-  const macDir = path.join(BUILD_DIR, 'mac');
+  console.log("🍎 Создание ICNS через PNG-pack (fallback)...");
+  const macDir = path.join(BUILD_DIR, "mac");
   ensureDirectoryExists(macDir);
-  const icnsPath = path.join(macDir, 'icon.icns');
+  const icnsPath = path.join(macDir, "icon.icns");
 
   // Apple icon types that accept PNG payloads.
   const entries = [
-    { type: 'icp4', size: 16 },
-    { type: 'icp5', size: 32 },
-    { type: 'icp6', size: 64 },
-    { type: 'ic07', size: 128 },
-    { type: 'ic08', size: 256 },
-    { type: 'ic09', size: 512 },
-    { type: 'ic10', size: 1024 },
-    { type: 'ic11', size: 32 },
-    { type: 'ic12', size: 64 },
-    { type: 'ic13', size: 256 },
-    { type: 'ic14', size: 512 }
+    { type: "icp4", size: 16 },
+    { type: "icp5", size: 32 },
+    { type: "icp6", size: 64 },
+    { type: "ic07", size: 128 },
+    { type: "ic08", size: 256 },
+    { type: "ic09", size: 512 },
+    { type: "ic10", size: 1024 },
+    { type: "ic11", size: 32 },
+    { type: "ic12", size: 64 },
+    { type: "ic13", size: 256 },
+    { type: "ic14", size: 512 },
   ];
 
   try {
@@ -389,7 +411,7 @@ function createIcnsWithPngPack(pngDir) {
       const png = fs.readFileSync(pngPath);
       const len = 8 + png.length;
       const header = Buffer.alloc(8);
-      header.write(type, 0, 4, 'ascii');
+      header.write(type, 0, 4, "ascii");
       header.writeUInt32BE(len, 4);
       chunks.push(Buffer.concat([header, png]));
     }
@@ -398,37 +420,37 @@ function createIcnsWithPngPack(pngDir) {
     }
     const body = Buffer.concat(chunks);
     const fileHeader = Buffer.alloc(8);
-    fileHeader.write('icns', 0, 4, 'ascii');
+    fileHeader.write("icns", 0, 4, "ascii");
     fileHeader.writeUInt32BE(8 + body.length, 4);
     fs.writeFileSync(icnsPath, Buffer.concat([fileHeader, body]));
     console.log(`✅ ICNS создан: ${icnsPath}`);
     return true;
   } catch (error) {
-    console.error('❌ Ошибка PNG-pack ICNS:', error.message);
+    console.error("❌ Ошибка PNG-pack ICNS:", error.message);
     return false;
   }
 }
 
 function createIcns(pngDir) {
-  console.log('🍎 Создание ICNS для macOS...');
+  console.log("🍎 Создание ICNS для macOS...");
 
   if (isIconutilAvailable()) {
-    console.log('✅ Найден iconutil, использую стандартную утилиту macOS');
+    console.log("✅ Найден iconutil, использую стандартную утилиту macOS");
     if (createIcnsWithIconutil(pngDir)) {
       return;
     }
   }
 
-  console.log('⚠️ Fallback: PNG-pack ICNS');
+  console.log("⚠️ Fallback: PNG-pack ICNS");
   if (!createIcnsWithPngPack(pngDir)) {
-    console.error('❌ Не удалось создать ICNS');
+    console.error("❌ Не удалось создать ICNS");
     process.exitCode = 1;
   }
 }
 
 function createLinuxIcons(pngDir) {
-  console.log('🐧 Подготовка иконок для Linux...');
-  const linuxDir = path.join(BUILD_DIR, 'linux');
+  console.log("🐧 Подготовка иконок для Linux...");
+  const linuxDir = path.join(BUILD_DIR, "linux");
   ensureDirectoryExists(linuxDir);
 
   const linuxSizes = [16, 24, 32, 48, 64, 128, 256, 512];
@@ -443,27 +465,27 @@ function createLinuxIcons(pngDir) {
 }
 
 function createFallbackIcons(pngDir) {
-  console.log('📁 Создание fallback иконок для Linux...');
-  
-  const fallbackDir = path.join(PROJECT_ROOT, 'build');
+  console.log("📁 Создание fallback иконок для Linux...");
+
+  const fallbackDir = path.join(PROJECT_ROOT, "build");
   ensureDirectoryExists(fallbackDir);
-  
-  const src256 = path.join(pngDir, '256x256.png');
-  const dst256 = path.join(fallbackDir, 'icon.png');
+
+  const src256 = path.join(pngDir, "256x256.png");
+  const dst256 = path.join(fallbackDir, "icon.png");
   if (fs.existsSync(src256)) {
     fs.copyFileSync(src256, dst256);
     console.log(`✅ Fallback иконка создана: ${dst256}`);
   }
-  
+
   if (fs.existsSync(SVG_PATH)) {
-    const dstSvg = path.join(fallbackDir, 'icon.svg');
+    const dstSvg = path.join(fallbackDir, "icon.svg");
     fs.copyFileSync(SVG_PATH, dstSvg);
     console.log(`✅ SVG иконка скопирована в build: ${dstSvg}`);
   }
 }
 
 function generateAllIcons() {
-  console.log('🚀 Начинаем генерацию иконок...');
+  console.log("🚀 Начинаем генерацию иконок...");
 
   if (!fs.existsSync(SVG_PATH)) {
     console.error(`❌ SVG файл не найден: ${SVG_PATH}`);
@@ -476,13 +498,13 @@ function generateAllIcons() {
   createLinuxIcons(pngDir);
   createFallbackIcons(pngDir);
 
-  console.log('✅ Все иконки успешно сгенерированы!');
-  console.log('📁 Структура иконок:');
-  console.log(`   - PNG: ${path.join(BUILD_DIR, 'png')}`);
-  console.log(`   - Windows ICO: ${path.join(BUILD_DIR, 'win')}`);
-  console.log(`   - macOS ICNS: ${path.join(BUILD_DIR, 'mac')}`);
-  console.log(`   - Linux: ${path.join(BUILD_DIR, 'linux')}`);
-  console.log(`   - Fallback: ${path.join(PROJECT_ROOT, 'build')}`);
+  console.log("✅ Все иконки успешно сгенерированы!");
+  console.log("📁 Структура иконок:");
+  console.log(`   - PNG: ${path.join(BUILD_DIR, "png")}`);
+  console.log(`   - Windows ICO: ${path.join(BUILD_DIR, "win")}`);
+  console.log(`   - macOS ICNS: ${path.join(BUILD_DIR, "mac")}`);
+  console.log(`   - Linux: ${path.join(BUILD_DIR, "linux")}`);
+  console.log(`   - Fallback: ${path.join(PROJECT_ROOT, "build")}`);
 }
 
 if (require.main === module) {
