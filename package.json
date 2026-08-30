@@ -35,21 +35,21 @@
   },
   "dependencies": {
     "electron-store": "11.0.2",
-    "electron-updater": "6.8.3",
+    "electron-updater": "6.8.9",
     "which": "7.0.0"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
     "commit-and-tag-version": "12.7.3",
-    "electron": "42.3.2",
-    "electron-builder": "26.8.1",
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3",
     "eslint": "9.39.4",
     "eslint-config-prettier": "10.1.8",
-    "globals": "17.6.0",
-    "prettier": "3.8.3"
+    "globals": "17.11.0",
+    "prettier": "3.9.6"
   },
   "author": {
-    "name": "yumata, Kolovatoff",
+    "name": "Kolovatoff",
     "email": "kirill@kolovatov.ru"
   },
   "license": "MIT",
