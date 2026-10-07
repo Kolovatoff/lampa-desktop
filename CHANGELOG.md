@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.6.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.6.0...v1.6.1) (2026-10-07)
+
+### ✨ Новые возможности
+
+- добавить поддержку плеера senplayer ([c6520bd](https://github.com/Kolovatoff/lampa-desktop/commit/c6520bd2db08da3f96a925a3511438f2a5b97ecf))
+
+### 🐛 Исправления
+
+- исправить закругления для Linux и Windows ([dca9d13](https://github.com/Kolovatoff/lampa-desktop/commit/dca9d134c7948be179f811e3b8e6fb7c78b7055a))
+
+### ♻️ Рефакторинг
+
+- изменить блок с информацией о TorrServer ([116e4fa](https://github.com/Kolovatoff/lampa-desktop/commit/116e4fa35816765cce6988fcdda171c0536ca047))
+- изменить условия определения работы GST ([9e0aa7f](https://github.com/Kolovatoff/lampa-desktop/commit/9e0aa7faad9719c166ff359fe9aebc93a44f0c7b))
+- сделать управление геймпадом, если только окно в фокусе ([653cb7b](https://github.com/Kolovatoff/lampa-desktop/commit/653cb7b4f006ce78196da7b6aa11f959d36fad78))
+
 ## [1.6.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.5.1...v1.6.0) (2026-08-30)
 
 ### ✨ Новые возможности
@@ -12,9 +28,9 @@ All notable changes to this project will be documented in this file. See [commit
 - обновить иконки приложения и скрипт генерации при помощи @pavelpikta ([fcf2c52](https://github.com/Kolovatoff/lampa-desktop/commit/fcf2c5266d06e2b65f449e5fca40065d0a61a60b)) [#11](https://github.com/Kolovatoff/lampa-desktop/commit/11)
 
 ### Новые участники
+
 - @EugeneK32 внёс свой первый вклад в [#8](https://github.com/Kolovatoff/lampa-desktop/commit/8)
 - @pavelpikta внёс свой первый вклад в [#11](https://github.com/Kolovatoff/lampa-desktop/commit/11)
-
 
 ## [1.5.1](https://github.com/Kolovatoff/lampa-desktop/compare/v1.5.0...v1.5.1) (2026-06-06)
 
