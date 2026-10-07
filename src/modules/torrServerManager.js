@@ -318,11 +318,9 @@ class TorrServerManager {
       const data = await response.json();
 
       // Проверяем, что все компоненты работают
-      const allWorks =
-        data.gst_discoverer?.works &&
-        data.gstreamer?.works;
-        // data.hdr_tone_mapping?.works &&
-        // data.embedded_runtime?.works;
+      const allWorks = data.gst_discoverer?.works && data.gstreamer?.works;
+      // data.hdr_tone_mapping?.works &&
+      // data.embedded_runtime?.works;
 
       this.gstSupport = allWorks;
 

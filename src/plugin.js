@@ -2029,9 +2029,9 @@
           console.log("🔄 Обновление статуса TorrServer:", status);
 
           // Обновляем версию с информацией о GST
-          const versionElement = $(
-            '[data-name="app_settings_ts_info"]',
-          ).find(".settings-param__descr");
+          const versionElement = $('[data-name="app_settings_ts_info"]').find(
+            ".settings-param__descr",
+          );
 
           if (status.version !== null) {
             const useGst = status.useGst || false;
@@ -2075,28 +2075,28 @@
             );
           }
 
-          versionElement.append("<br>")
-          versionElement.append(status.installed
-                ? status.running
-                  ? Lampa.Lang.translate(
-                      "app_settings_ts_status_installed_running",
-                    )
-                  : Lampa.Lang.translate(
-                      "app_settings_ts_status_installed_stopped",
-                    )
-                : Lampa.Lang.translate("app_settings_ts_status_not_installed"));
+          versionElement.append("<br>");
+          versionElement.append(
+            status.installed
+              ? status.running
+                ? Lampa.Lang.translate(
+                    "app_settings_ts_status_installed_running",
+                  )
+                : Lampa.Lang.translate(
+                    "app_settings_ts_status_installed_stopped",
+                  )
+              : Lampa.Lang.translate("app_settings_ts_status_not_installed"),
+          );
 
           // Обновляем статус GStreamer
-          const gstElement = $(
-            '[data-name="app_settings_ts_gst"]',
-          ).find(".settings-param__descr");
+          const gstElement = $('[data-name="app_settings_ts_gst"]').find(
+            ".settings-param__descr",
+          );
 
           if (status.running) {
             try {
               const serverInfo =
-                await window.electronAPI.torrServer.getServerInfo(
-                  status.port,
-                );
+                await window.electronAPI.torrServer.getServerInfo(status.port);
               const gstText = serverInfo.gstSupported
                 ? Lampa.Lang.translate("app_settings_ts_gst_enabled")
                 : Lampa.Lang.translate("app_settings_ts_gst_disabled");
@@ -2106,11 +2106,15 @@
               gstElement.append(serverInfo.gstreamerVersion);
             } catch (error) {
               console.error("Ошибка получения информации о GST:", error);
-              gstElement.text(Lampa.Lang.translate("app_settings_ts_gst_unknown"));
+              gstElement.text(
+                Lampa.Lang.translate("app_settings_ts_gst_unknown"),
+              );
             }
           } else {
             // Сервер не запущен
-            gstElement.text(Lampa.Lang.translate("app_settings_ts_gst_unknown"));
+            gstElement.text(
+              Lampa.Lang.translate("app_settings_ts_gst_unknown"),
+            );
           }
         })
         .catch((error) => {
@@ -2842,6 +2846,7 @@
     poll(now) {
       if (!document.hasFocus()) {
         if (this.buttonStates.size > 0) {
+          // eslint-disable-next-line no-unused-vars
           for (const [id, state] of this.buttonStates) {
             this.dispatch("keyup", state.binding);
           }
