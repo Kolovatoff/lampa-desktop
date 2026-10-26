@@ -1,6 +1,15 @@
 const { app } = require("electron");
 const path = require("node:path");
 
+// Для Windows и Mac включаем нативную поддержку HEVC встроенными силами ОС
+if (process.platform === 'win32' || process.platform === 'darwin') {
+    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,FFmpegAllowLists,PlatformEncryptedDolbyVision');
+}
+if (process.platform === 'linux') {
+    app.commandLine.appendSwitch('disable-gpu-sandbox');
+    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport,FFmpegAllowLists,PlatformEncryptedDolbyVision');
+}
+
 const { setupAppLifecycle, gotTheLock } = require("./modules/appLifecycle");
 const { createWindow } = require("./modules/windowManager");
 const { setupAutoUpdater } = require("./modules/autoUpdater");

@@ -71,6 +71,7 @@
 
 Исходный код самой **Lampa** доступен здесь: 👉 [yumata/lampa-source](https://github.com/yumata/lampa-source)
 
+
 ### ✍️ Внесение изменений
 
 Процесс стандартный:

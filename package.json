@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Kolovatoff/lampa-desktop"
   },
-  "desktopName": "lampa-desktop",
+  "desktopName": "lampa",
   "main": "src/main.js",
   "engines": {
     "node": ">=24.0.0 <25.0.0",
@@ -15,11 +15,11 @@
     "yarn": ">= 4.0.0"
   },
   "scripts": {
-    "start": "electron .",
-    "dev": "electron . --dev",
-    "build-linux": "electron-builder --linux --publish=never",
-    "build-mac": "electron-builder --mac --publish=never",
-    "build-win": "electron-builder --win --publish=never",
+    "start": "node scripts/with-electron-env.js electron .",
+    "dev": "node scripts/with-electron-env.js electron . --dev",
+    "build-linux": "electron-builder --linux --config electron-builder.linux.js --publish=never",
+    "build-mac": "electron-builder --mac --config electron-builder.mac.js --publish=never",
+    "build-win": "electron-builder --win --config electron-builder.win.js --publish=never",
     "test": "node --test tests/*.test.js",
     "lint": "yarn lint:eslint && yarn lint:prettier",
     "lint:eslint": "eslint .",
@@ -42,7 +42,7 @@
   "devDependencies": {
     "@eslint/js": "9.39.4",
     "commit-and-tag-version": "13.3.0",
-    "electron": "44.4.4",
+    "electron": "45.2.3",
     "electron-builder": "26.18.0",
     "eslint": "9.39.4",
     "eslint-config-prettier": "10.1.8",
@@ -57,84 +57,17 @@
   "build": {
     "appId": "com.lampa.desktop",
     "productName": "Lampa",
-    "artifactName": "lampa-${arch}-${version}.${ext}",
     "directories": {
       "output": "dist",
       "buildResources": "build"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "deb",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        {
-          "target": "rpm",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        },
-        "AppImage"
-      ],
-      "icon": "build/icons/linux",
-      "category": "AudioVideo",
-      "desktop": {
-        "entry": {
-          "Name": "Lampa",
-          "Comment": "Десктопное приложение-клиент для Lampa",
-          "Categories": "AudioVideo;",
-          "StartupWMClass": "lampa-desktop",
-          "MimeType": "application/x-lampa"
-        }
-      },
-      "maintainer": "Kirill Kolovatov <kirill@kolovatov.ru>",
-      "vendor": "Kolovatoff",
-      "executableName": "lampa-desktop"
-    },
-    "mac": {
-      "category": "public.app-category.utilities",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icons/mac/icon.icns"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "arm64"
-          ]
-        }
-      ],
-      "icon": "build/icons/win/icon.ico",
-      "verifyUpdateCodeSignature": true
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": true,
-      "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
-      "runAfterFinish": false,
-      "installerIcon": "build/icons/win/icon.ico",
-      "uninstallerIcon": "build/icons/win/icon.ico",
-      "license": "LICENSE"
     },
     "publish": {
       "provider": "github",
       "owner": "Kolovatoff",
       "repo": "lampa-desktop"
+    },
+    "electronDownload": {
+      "mirror": "https://lampa.kolovatoff.ru/electron/"
     }
   },
   "files": [

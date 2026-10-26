@@ -70,6 +70,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
+      enableBlinkFeatures: "AudioVideoTracks",
       sandbox: false,
       contextMenu: false,
       webSecurity: Boolean(store.get("webSecurity")),
