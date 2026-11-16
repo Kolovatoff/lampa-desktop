@@ -154,7 +154,7 @@ function loadPlugin({
       pending = value;
     },
     progress: (value) => receiveProgress(value),
-    warn: () => receiveWarning(),
+    warn: (warning) => receiveWarning(warning),
     prompt: () => prompt,
     external,
     messages,
@@ -169,6 +169,7 @@ test("adds VLC to all three menus while preserving choices and defaults", () => 
   const app = loadPlugin();
   for (const name of Object.keys(app.settings)) {
     assert.equal(app.Lampa.Params.values[name].vlc, "VLC");
+    assert.equal(app.Lampa.Params.values[name].maclc, "MacLC");
     assert.equal(app.Lampa.Params.values[name].iina, "IINA");
     assert.equal(app.Lampa.Params.defaults[name], "inner");
   }
@@ -197,6 +198,40 @@ test("opens online and torrent videos with their separate player selections", as
     "https://example.com/movie.mp4",
   ]);
   assert.equal(app.external.length, 2);
+});
+
+test("routes MacLC video, torrent and IPTV through the shared timecode integration", async () => {
+  const app = loadPlugin();
+  app.settings.player = "maclc";
+  app.settings.player_torrent = "vlc";
+  const data = {
+    url: "https://example.com/movie.mp4",
+    timeline: { hash: "movie" },
+  };
+  app.records.set("file_view:movie", {
+    time: 420,
+    duration: 1200,
+    percent: 35,
+  });
+  assert.equal(app.play(data), true);
+  await new Promise(setImmediate);
+  assert.equal(app.requests[0].player, "maclc");
+  assert.equal(app.requests[0].startTime, 420);
+  assert.equal(app.requests[0].timeline.hash, "movie");
+  app.play({ ...data, torrent_hash: "hash" });
+  await new Promise(setImmediate);
+  assert.equal(app.requests.at(-1).player, "vlc");
+  app.play({ ...data, launch_player: "maclc", torrent_hash: "hash" });
+  await new Promise(setImmediate);
+  assert.equal(app.requests.at(-1).player, "maclc");
+  assert.equal(app.play({ ...data, launch_player: "iina" }), false);
+  app.settings.player_iptv = "maclc";
+  app.Lampa.Player.iptv(data);
+  await new Promise(setImmediate);
+  assert.equal(app.requests.at(-1).player, "maclc");
+  assert.equal(app.requests.at(-1).timeline, null);
+  app.warn({ player: "maclc" });
+  assert.equal(app.messages.at(-1), "desktop_maclc_sync_failed");
 });
 
 test("respects an explicit internal player and YouTube playback", () => {

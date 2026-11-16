@@ -134,6 +134,7 @@ test("rejects malformed input and unsupported platforms before starting VLC", as
     "javascript:alert(1)",
     "https://example.com/x\n--args",
     { url, timeline: { hash: {}, storageKey: "file_view" } },
+    { url, player: "../../OtherApp" },
   ]) {
     assert.equal((await app.player.open(input)).success, false);
   }
@@ -365,4 +366,78 @@ test("an idle pause does not repeatedly persist the same sample", async (t) => {
   app.state.time = 421;
   await app.player.sample();
   assert.equal(app.progress.at(-1).time, 421);
+});
+
+test("switches between VLC and MacLC after flushing progress and releases only the owned process", async (t) => {
+  let starts = 0;
+  let cleanups = 0;
+  const control = {
+    start: () => {
+      starts++;
+      return ["--extraintf=rc", "--rc-unix=/private/control.sock"];
+    },
+    dispose: () => cleanups++,
+    request: async (parameters = {}, resource = "status.json") => {
+      const request = new URL(`http://test/requests/${resource}`);
+      for (const [key, value] of Object.entries(parameters))
+        request.searchParams.set(key, value);
+      return (await app.player.fetch(request, {})).json();
+    },
+  };
+  const app = fixture(t, {
+    createMacLcControl: () => control,
+    findExecutable: (name) =>
+      `/Applications/${name}.app/Contents/MacOS/${name}`,
+  });
+  await app.player.open({ url, timeline, startTime: 120 });
+  const vlc = app.children[0];
+  assert.equal(
+    (await app.player.open({ player: "maclc", url, timeline, startTime: 420 }))
+      .success,
+    true,
+  );
+  assert.equal(vlc.child.killed, true);
+  assert.equal(app.progress.find((sample) => sample.ended).time, 120);
+  assert.equal(
+    app.children[1].executable,
+    "/Applications/MacLC.app/Contents/MacOS/MacLC",
+  );
+  assert.ok(app.children[1].args.includes("--extraintf=rc"));
+  assert.ok(app.children[1].args.every((arg) => !arg.includes("--http")));
+  assert.equal(app.progress.at(-1).player, "maclc");
+  assert.equal(app.progress.at(-1).time, 420);
+  assert.equal(starts, 1);
+  await app.player.open({ player: "maclc", url, timeline });
+  assert.equal(app.children.length, 2);
+  await app.player.open({ player: "vlc", url, timeline });
+  assert.equal(app.children[1].child.killed, true);
+  assert.equal(cleanups, 1);
+  assert.equal(
+    app.children[2].executable,
+    "/Applications/VLC.app/Contents/MacOS/VLC",
+  );
+  assert.equal(app.progress.at(-1).player, "vlc");
+});
+
+test("requests a graceful MacLC quit before removing its private control files", async (t) => {
+  const app = fixture(t);
+  await app.player.open({ url, timeline, startTime: 120 });
+  const child = app.children[0].child;
+  let disposed = false;
+  app.player.control = {
+    request: async () => ({ ...app.state }),
+    command: async (command) => {
+      assert.equal(command, "quit");
+      assert.equal(disposed, false);
+      child.emit("exit", 0);
+    },
+    dispose: () => {
+      disposed = true;
+    },
+  };
+  await app.player.dispose();
+  assert.notEqual(child.killed, true);
+  assert.equal(disposed, true);
+  assert.equal(app.progress.at(-1).reason, "shutdown");
+  assert.equal(app.progress.at(-1).time, 120);
 });

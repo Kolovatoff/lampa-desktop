@@ -6,6 +6,7 @@ const net = require("node:net");
 const { homedir } = require("node:os");
 const path = require("node:path");
 const { setTimeout: delay } = require("node:timers/promises");
+const { MacLcControl } = require("./macLcControl");
 
 function availablePort() {
   return new Promise((resolve, reject) => {
@@ -18,9 +19,11 @@ function availablePort() {
   });
 }
 
-function findExecutable() {
+function findExecutable(name) {
   return ["/Applications", path.join(homedir(), "Applications")]
-    .map((directory) => path.join(directory, "VLC.app/Contents/MacOS/VLC"))
+    .map((directory) =>
+      path.join(directory, `${name}.app/Contents/MacOS/${name}`),
+    )
     .find((executable) => existsSync(executable));
 }
 
@@ -35,6 +38,10 @@ function validateRequest(input) {
     throw new Error("Only HTTP and HTTPS video URLs are supported");
   }
   const timeline = request.timeline;
+  const player = request.player ?? "vlc";
+  if (!["vlc", "maclc"].includes(player)) {
+    throw new Error("Unsupported macOS player");
+  }
   if (
     timeline &&
     !(
@@ -48,6 +55,7 @@ function validateRequest(input) {
   }
   return {
     id: randomBytes(16).toString("hex"),
+    player,
     url: request.url,
     startTime:
       Number.isFinite(request.startTime) && request.startTime > 0
@@ -88,6 +96,12 @@ class MacVlcPlayer extends EventEmitter {
     this.pollInterval = dependencies.pollInterval ?? 1000;
     this.startupTimeout = dependencies.startupTimeout ?? 15000;
     this.requestTimeout = dependencies.requestTimeout ?? 2000;
+    this.createMacLcControl =
+      dependencies.createMacLcControl ??
+      (() => new MacLcControl(this.requestTimeout));
+    this.playerId = null;
+    this.name = "VLC";
+    this.control = null;
     this.child = null;
     this.session = null;
     this.timer = null;
@@ -107,6 +121,7 @@ class MacVlcPlayer extends EventEmitter {
   }
 
   async request(parameters = {}, resource = "status.json") {
+    if (this.control) return this.control.request(parameters, resource);
     const url = new URL(`http://127.0.0.1:${this.port}/requests/${resource}`);
     for (const [key, value] of Object.entries(parameters)) {
       url.searchParams.set(key, value);
@@ -128,7 +143,7 @@ class MacVlcPlayer extends EventEmitter {
       if (result) return result;
       await delay(100);
     }
-    throw new Error("VLC did not become ready in time");
+    throw new Error(`${this.name} did not become ready in time`);
   }
 
   async ensureProcess() {
@@ -137,23 +152,28 @@ class MacVlcPlayer extends EventEmitter {
         await this.request();
         return;
       } catch {
-        // Replace only our own instance if its HTTP interface cannot recover.
-        const child = this.child;
-        this.child = null;
-        child.kill();
+        // Replace only our own instance if its control interface cannot recover.
+        await this.stopProcess();
       }
     }
-    const executable = this.findExecutable();
-    if (!executable) throw new Error("VLC is not installed");
-    this.port = await this.allocatePort();
-    this.password = randomBytes(24).toString("hex");
-    const child = this.spawn(
-      executable,
-      [
+    const executable = this.findExecutable(this.name);
+    if (!executable) throw new Error(`${this.name} is not installed`);
+    let controlArguments;
+    if (this.control) controlArguments = this.control.start();
+    else {
+      this.port = await this.allocatePort();
+      this.password = randomBytes(24).toString("hex");
+      controlArguments = [
         "--extraintf=http",
         "--http-host=127.0.0.1",
         `--http-port=${this.port}`,
         `--http-password=${this.password}`,
+      ];
+    }
+    const child = this.spawn(
+      executable,
+      [
+        ...controlArguments,
         "--no-playlist-autostart",
         "--no-loop",
         "--no-repeat",
@@ -165,6 +185,7 @@ class MacVlcPlayer extends EventEmitter {
       if (this.child !== child) return;
       this.child = null;
       this.finish("closed");
+      this.control?.dispose();
     };
     child.once("error", closed);
     child.once("exit", closed);
@@ -172,8 +193,7 @@ class MacVlcPlayer extends EventEmitter {
       await this.waitUntil(() => this.request());
     } catch (error) {
       if (this.child === child) {
-        this.child = null;
-        child.kill();
+        await this.stopProcess();
       }
       throw error;
     }
@@ -181,7 +201,8 @@ class MacVlcPlayer extends EventEmitter {
 
   async openSession(input) {
     if (this.platform !== "darwin") throw new Error("macOS is required");
-    if (this.disposed) throw new Error("VLC controller is shutting down");
+    if (this.disposed)
+      throw new Error("macOS player controller is shutting down");
     const next = validateRequest(input);
     this.changing = true;
     clearTimeout(this.timer);
@@ -189,6 +210,13 @@ class MacVlcPlayer extends EventEmitter {
     await this.sample();
     this.finish("replaced");
     try {
+      if (this.playerId !== next.player) {
+        await this.stopProcess();
+        this.playerId = next.player;
+        this.name = next.player === "maclc" ? "MacLC" : "VLC";
+        this.control =
+          next.player === "maclc" ? this.createMacLcControl() : null;
+      }
       await this.ensureProcess();
       await this.request({ command: "pl_empty" });
       // URLSearchParams encodes one HTTP query layer; VLC receives the original MRL.
@@ -298,6 +326,7 @@ class MacVlcPlayer extends EventEmitter {
     if (!session.timeline) return;
     this.emit("progress", {
       ...session.last,
+      player: session.player,
       id: session.id,
       version: ++session.version,
       timeline: session.timeline,
@@ -335,7 +364,7 @@ class MacVlcPlayer extends EventEmitter {
     } catch {
       if (this.session === session && ++session.failures === 5) {
         this.publish(session, "disconnected");
-        this.emit("warning", "VLC timecode connection was lost");
+        this.emit("warning", { player: session.player });
       }
     }
   }
@@ -357,9 +386,37 @@ class MacVlcPlayer extends EventEmitter {
     await this.polling;
     await this.sample();
     this.finish("shutdown");
+    await this.stopProcess();
+  }
+
+  async stopProcess() {
     const child = this.child;
+    const control = this.control;
     this.child = null;
-    if (child) child.kill();
+    if (!child) {
+      control?.dispose();
+      return;
+    }
+    // MacLC may still be tearing down its interface. Wait before
+    // launching a replacement, and bound shutdown if an owned process is stuck.
+    await new Promise((resolve) => {
+      const done = () => {
+        clearTimeout(timer);
+        child.removeListener("exit", done);
+        child.removeListener("error", done);
+        resolve();
+      };
+      const timer = setTimeout(() => {
+        child.kill("SIGKILL");
+        done();
+      }, 5000);
+      child.once("exit", done);
+      child.once("error", done);
+      if (control?.command) {
+        void control.command("quit").catch(() => child.kill());
+      } else child.kill();
+    });
+    control?.dispose();
   }
 }
 

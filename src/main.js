@@ -73,7 +73,7 @@ app.on("will-quit", async (event) => {
   try {
     await macVlcPlayer.dispose();
   } catch (error) {
-    console.error("❌ Ошибка при остановке VLC:", error);
+    console.error("❌ Ошибка при остановке внешнего плеера:", error);
   }
 
   try {

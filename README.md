@@ -16,7 +16,7 @@
 ## 🔧 Возможности
 
 ✅ Поддержка **Windows, Linux, macOS**  
-✅ Синхронизация таймкодов с **VLC (Windows, Linux, macOS)**, **KMPlayer, MPC(HC/BE/QT)**  
+✅ Синхронизация таймкодов с **VLC (Windows, Linux, macOS)**, **MacLC (macOS)**, **KMPlayer, MPC(HC/BE/QT)**  
 ✅ Динамическая загрузка Lampa с `lampa.mx` или кастомного URL  
 ✅ Экспорт/импорт конфигурации между устройствами  
 ✅ Встроенные настройки: смена URL, полноэкранный режим и др.  

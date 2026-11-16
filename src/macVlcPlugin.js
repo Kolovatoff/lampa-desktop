@@ -11,7 +11,10 @@
     ["player", "player_torrent", "player_iptv"].forEach(function (name) {
       Lampa.Params.select(
         name,
-        Object.assign({}, Lampa.Params.values[name], { vlc: "VLC" }),
+        Object.assign({}, Lampa.Params.values[name], {
+          vlc: "VLC",
+          maclc: "MacLC",
+        }),
         Lampa.Params.defaults[name],
       );
     });
@@ -26,6 +29,16 @@
         ru: "Связь с VLC потеряна. Lampa пытается восстановить синхронизацию.",
         en: "VLC is not responding. Lampa is trying to reconnect.",
         uk: "Зв'язок із VLC втрачено. Lampa намагається відновити синхронізацію.",
+      },
+      desktop_maclc_failed: {
+        ru: "Не удалось открыть видео в MacLC.",
+        en: "Could not open the video in MacLC.",
+        uk: "Не вдалося відкрити відео у MacLC.",
+      },
+      desktop_maclc_sync_failed: {
+        ru: "Связь с MacLC потеряна. Lampa пытается восстановить синхронизацию.",
+        en: "MacLC is not responding. Lampa is trying to reconnect.",
+        uk: "Зв'язок із MacLC втрачено. Lampa намагається відновити синхронізацію.",
       },
     });
 
@@ -81,8 +94,9 @@
     }
 
     playerApi.onMacVlcProgress(applyProgress);
-    playerApi.onMacVlcWarning(function () {
-      Lampa.Noty.show(Lampa.Lang.translate("desktop_vlc_sync_failed"));
+    playerApi.onMacVlcWarning(function (warning) {
+      const player = warning?.player === "maclc" ? "maclc" : "vlc";
+      Lampa.Noty.show(Lampa.Lang.translate(`desktop_${player}_sync_failed`));
     });
     function restore() {
       void restoreTimecodes().catch((error) => {
@@ -102,22 +116,22 @@
       forcedPlayer = "";
     });
 
-    function useVlc(data, iptv) {
+    function selectedPlayer(data, iptv) {
       const override = data.launch_player || forcedPlayer;
-      if (override === "lampa" || override === "inner") return false;
 
       const setting = iptv
         ? "player_iptv"
         : data.torrent_hash
           ? "player_torrent"
           : "player";
-      if (override !== "vlc" && Lampa.Storage.field(setting) !== "vlc") {
-        return false;
-      }
-      return !Lampa.PlayerVideo.verifyTube(data.url);
+      const player = override || Lampa.Storage.field(setting);
+      return ["vlc", "maclc"].includes(player) &&
+        !Lampa.PlayerVideo.verifyTube(data.url)
+        ? player
+        : null;
     }
 
-    async function launch(data, iptv) {
+    async function launch(data, player, iptv) {
       const version = ++launchVersion;
       const storageKey = Lampa.Timeline.filename();
       try {
@@ -188,6 +202,7 @@
           timeline && !timeline.stop_recording && timeline.hash;
         const fullscreen = Lampa.Storage.field("player_external_fullscreen");
         const result = await playerApi.openMacVlc({
+          player,
           url: Lampa.Torserver.toPlayUrl(url),
           startTime,
           fullscreen: fullscreen === true || fullscreen === "true",
@@ -204,24 +219,26 @@
         if (recordTimeline) timelines.set(result.id, timeline);
         Lampa.Player.listener.send("external", data);
       } catch (error) {
-        console.error("VLC launch failed:", error.message);
-        Lampa.Noty.show(Lampa.Lang.translate("desktop_vlc_failed"));
+        console.error(`${player} launch failed:`, error.message);
+        Lampa.Noty.show(Lampa.Lang.translate(`desktop_${player}_failed`));
       }
     }
 
     // The create hook also covers calls made inside Lampa's playlist module.
     Lampa.Player.listener.follow("create", function (event) {
-      if (!useVlc(event.data, false)) return;
+      const player = selectedPlayer(event.data, false);
+      if (!player) return;
       event.abort();
-      void launch(event.data);
+      void launch(event.data, player);
     });
 
     // IPTV has its own entry point and does not emit the create event.
     const originalIptv = Lampa.Player.iptv;
     Lampa.Player.iptv = function (data) {
-      if (!useVlc(data, true)) return originalIptv.apply(this, arguments);
+      const player = selectedPlayer(data, true);
+      if (!player) return originalIptv.apply(this, arguments);
       Lampa.PlayerIPTV.locked(data, function () {
-        void launch(data, true);
+        void launch(data, player, true);
       });
     };
   }
