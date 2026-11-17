@@ -76,7 +76,7 @@ function createWindow() {
       webSecurity: Boolean(store.get("webSecurity")),
       backgroundThrottling: false,
     },
-    backgroundColor: '#1d1f20',
+    backgroundColor: "#1d1f20",
     show: false,
     titleBarStyle: "default",
     icon: path.join(__dirname, "../build/icon.png"),

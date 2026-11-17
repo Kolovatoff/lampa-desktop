@@ -1,18 +1,16 @@
-const pkg = require('./package.json');
+const pkg = require("./package.json");
 
 module.exports = {
-  ...pkg.build, 
+  ...pkg.build,
   ...(pkg.files ? { files: pkg.files } : {}),
-  
-  artifactName: 'lampa-${version}-${arch}-setup.${ext}',
+
+  artifactName: "lampa-${version}-${arch}-setup.${ext}",
 
   win: {
     ...pkg.build.win,
-    icon: 'build/icons/win/icon.ico',
+    icon: "build/icons/win/icon.ico",
     verifyUpdateCodeSignature: true,
-    target: [
-      { target: 'nsis', arch: ['x64', 'arm64'] }
-    ]
+    target: [{ target: "nsis", arch: ["x64", "arm64"] }],
   },
 
   nsis: {
@@ -21,10 +19,10 @@ module.exports = {
     allowElevation: true,
     allowToChangeInstallationDirectory: true,
     runAfterFinish: false,
-    installerIcon: 'build/icons/win/icon.ico',
-    uninstallerIcon: 'build/icons/win/icon.ico',
-    license: 'LICENSE',
-    artifactName: 'lampa-${version}-${arch}-setup.${ext}'
+    installerIcon: "build/icons/win/icon.ico",
+    uninstallerIcon: "build/icons/win/icon.ico",
+    license: "LICENSE",
+    artifactName: "lampa-${version}-${arch}-setup.${ext}",
   },
 
   // Портативная версия

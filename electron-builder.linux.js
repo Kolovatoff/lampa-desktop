@@ -1,38 +1,37 @@
-const pkg = require('./package.json');
+const pkg = require("./package.json");
 
 module.exports = {
-  ...pkg.build, 
+  ...pkg.build,
   ...(pkg.files ? { files: pkg.files } : {}),
 
-  artifactName: 'lampa_${version}_${arch}.${ext}',
+  artifactName: "lampa_${version}_${arch}.${ext}",
 
   linux: {
     ...pkg.build.linux,
     target: [
-      { target: 'deb', arch: ['x64', 'arm64'] },
-      { target: 'rpm', arch: ['x64', 'arm64'] },
-      'AppImage'
+      { target: "deb", arch: ["x64", "arm64"] },
+      { target: "rpm", arch: ["x64", "arm64"] },
+      "AppImage",
     ],
-    icon: 'build/icons/linux',
-    category: 'AudioVideo;Video',
+    icon: "build/icons/linux",
+    category: "AudioVideo;Video",
     desktop: {
       entry: {
-          Name: "Lampa",
-          Comment: "Десктопное приложение-клиент для Lampa",
-          Categories: "AudioVideo;",
-          StartupWMClass: "lampa-desktop",
-          MimeType: "application/x-lampa"
-        }
+        Name: "Lampa",
+        Comment: "Десктопное приложение-клиент для Lampa",
+        Categories: "AudioVideo;",
+        StartupWMClass: "lampa-desktop",
+        MimeType: "application/x-lampa",
+      },
     },
-    maintainer: 'Kirill Kolovatov <kirill@kolovatov.ru>',
-    vendor: 'Kolovatoff',
-    executableName: 'lampa'
-    
+    maintainer: "Kirill Kolovatov <kirill@kolovatov.ru>",
+    vendor: "Kolovatoff",
+    executableName: "lampa",
   },
 
   // Отдельные переопределения для deb и rpm
   deb: {
-    artifactName: 'lampa_${version}_${arch}.deb',
+    artifactName: "lampa_${version}_${arch}.deb",
     // depends: [
     //   'libgtk-3-0',
     //   'libnotify4',
@@ -46,7 +45,7 @@ module.exports = {
   },
 
   rpm: {
-    artifactName: 'lampa-${version}.${arch}.rpm',
+    artifactName: "lampa-${version}.${arch}.rpm",
     // depends: [
     //   'gtk3',
     //   'libnotify',
@@ -60,6 +59,6 @@ module.exports = {
   },
 
   appImage: {
-    artifactName: 'lampa-${version}-${arch}.AppImage'
-  }
+    artifactName: "lampa-${version}-${arch}.AppImage",
+  },
 };
