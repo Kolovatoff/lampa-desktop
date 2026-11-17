@@ -35,7 +35,7 @@ const PLAYERS = {
   },
   mpc_hc: {
     name: "MPC-HC",
-    description: "Media Player Classic Home Cinema",
+    description: "Media Player Classic - Home Cinema",
     platforms: {
       win32: {
         paths: [
@@ -47,7 +47,19 @@ const PLAYERS = {
           path.join(
             process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
             "MPC-HC",
-            "mpc-hc.exe",
+            "mpc-hc64.exe",
+          ),
+          path.join(
+            process.env.ProgramFiles || "C:\\Program Files",
+            "K-Lite Codec Pack",
+            "MPC-HC64",
+            "mpc-hc64.exe",
+          ),
+          path.join(
+            process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
+            "K-Lite Codec Pack",
+            "MPC-HC64",
+            "mpc-hc64.exe",
           ),
         ],
       },
@@ -120,6 +132,62 @@ const PLAYERS = {
       darwin: { paths: [] },
       linux: {
         paths: ["/usr/bin/mpc-qt", "/usr/local/bin/mpc-qt", "/snap/bin/mpc-qt"],
+      },
+    },
+  },
+  mpv: {
+    name: "MPV",
+    description: "MPV",
+    platforms: {
+      win32: {
+        paths: [
+          path.join(
+            process.env.ProgramFiles || "C:\\Program Files",
+            "MPV Player",
+            "mpv.exe",
+          ),
+          path.join(
+            process.env.ProgramFiles || "C:\\Program Files",
+            "mpv",
+            "mpv.exe",
+          ),
+          path.join(
+            process.env.USERPROFILE || "C:\\Users\\Default",
+            "scoop",
+            "apps",
+            "mpv",
+            "current",
+            "mpv.exe",
+          ),
+          "C:\\mpv\\mpv.exe",
+        ],
+      },
+      darwin: {
+        paths: [
+          // Homebrew (Apple Silicon)
+          "/opt/homebrew/bin/mpv",
+          // Homebrew (Intel)
+          "/usr/local/bin/mpv",
+          // MacPorts
+          "/opt/local/bin/mpv",
+        ],
+      },
+      linux: {
+        paths: [
+          // Стандартные пути дистрибутивов
+          "/usr/bin/mpv",
+          "/usr/local/bin/mpv",
+          // Snap
+          "/snap/bin/mpv",
+          // Flatpak (системный и пользовательский)
+          "/var/lib/flatpak/exports/bin/io.mpv.Mpv",
+          path.join(
+            process.env.HOME || "/home/user",
+            ".local/share/flatpak/exports/bin/io.mpv.Mpv",
+          ),
+          // Homebrew на Linux
+          "/home/linuxbrew/.linuxbrew/bin/mpv",
+        ],
       },
     },
   },
