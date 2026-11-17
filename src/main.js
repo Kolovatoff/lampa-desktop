@@ -23,6 +23,7 @@ const { registerIpcHandlers } = require("./modules/ipcHandlers");
 const torrServerManager = require("./modules/torrServerManager");
 const autoStartManager = require("./modules/autoStartManager");
 const PlayerOptionsInterceptor = require("./modules/playerOptionsInterceptor");
+const { macVlcPlayer } = require("./modules/macVlc");
 setupAppLifecycle();
 
 // Меняем расположение кеша и т.п. для разработки, чтобы не мешало установленной версии
@@ -83,6 +84,12 @@ app.on("will-quit", async (event) => {
   isQuitting = true;
 
   console.log("🔄 Завершение работы приложения...");
+
+  try {
+    await macVlcPlayer.dispose();
+  } catch (error) {
+    console.error("❌ Ошибка при остановке внешнего плеера:", error);
+  }
 
   try {
     console.log("🛑 Остановка TorrServer...");

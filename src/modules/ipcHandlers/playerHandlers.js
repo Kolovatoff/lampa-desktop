@@ -2,8 +2,46 @@
 const { ipcMain } = require("electron");
 const playerFinder = require("../playerFinder");
 const { getMainWindow } = require("../windowManager");
+const { macVlcPlayer } = require("../macVlc");
+const { MacVlcTimecodes } = require("../macVlcTimecodes");
+const store = require("../storeManager");
 
 function registerPlayerHandlers() {
+  const timecodes = new MacVlcTimecodes(store);
+  const isMainWindow = (event) => {
+    const window = getMainWindow();
+    return (
+      window && !window.isDestroyed() && event.sender === window.webContents
+    );
+  };
+  const send = (channel, payload) => {
+    const window = getMainWindow();
+    if (window && !window.isDestroyed() && !window.webContents.isDestroyed()) {
+      window.webContents.send(channel, payload);
+    }
+  };
+  macVlcPlayer.on("progress", (progress) => {
+    timecodes.save(progress);
+    send("player-mac-vlc-progress", progress);
+  });
+  macVlcPlayer.on("warning", (message) => {
+    send("player-mac-vlc-warning", message);
+  });
+  ipcMain.handle("player-open-mac-vlc", async (event, request) => {
+    if (!isMainWindow(event)) {
+      return { success: false, error: "Unknown application window" };
+    }
+    return macVlcPlayer.open(request);
+  });
+  ipcMain.handle("player-mac-vlc-timecodes", (event) => {
+    return isMainWindow(event) ? timecodes.all() : [];
+  });
+  ipcMain.handle("player-mac-vlc-acknowledge", (event, id, version) => {
+    if (isMainWindow(event)) {
+      timecodes.acknowledge(id, version);
+    }
+  });
+
   // Получить все плееры
   ipcMain.handle("player-get-all", async () => {
     return await playerFinder.getAllPlayers();

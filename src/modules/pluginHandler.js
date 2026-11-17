@@ -7,7 +7,7 @@ function setupPluginHandler(mainWindow) {
     try {
       await waitForLampaReady(mainWindow);
       await lampaInitializer.initialize(mainWindow);
-      injectPlugin(mainWindow);
+      await injectPlugin(mainWindow);
     } catch (err) {
       console.error("Ошибка при перезагрузке:", err);
     }
@@ -31,19 +31,24 @@ async function waitForLampaReady(mainWindow) {
   });
 }
 
-function injectPlugin(mainWindow) {
-  const pluginCode = readFileSync(
-    path.join(__dirname, "..", "plugin.js"),
-    "utf-8",
-  );
-  mainWindow.webContents
-    .executeJavaScript(pluginCode)
-    .then(() => {
-      console.log("Плагин успешно внедрён");
-    })
-    .catch((err) => {
-      console.error("Ошибка внедрения плагина:", err);
-    });
+async function injectPlugin(mainWindow) {
+  const plugins =
+    process.platform === "darwin"
+      ? ["macVlcPlugin.js", "plugin.js"]
+      : ["plugin.js"];
+
+  for (const plugin of plugins) {
+    try {
+      const pluginCode = readFileSync(
+        path.join(__dirname, "..", plugin),
+        "utf-8",
+      );
+      await mainWindow.webContents.executeJavaScript(pluginCode);
+      console.log(`Плагин успешно внедрён: ${plugin}`);
+    } catch (err) {
+      console.error(`Ошибка внедрения плагина ${plugin}:`, err);
+    }
+  }
 }
 
 module.exports = {

@@ -144,6 +144,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
 
   player: {
+    openMacVlc: (request) => ipcRenderer.invoke("player-open-mac-vlc", request),
+    getMacVlcTimecodes: () => ipcRenderer.invoke("player-mac-vlc-timecodes"),
+    acknowledgeMacVlcTimecode: (id, version) =>
+      ipcRenderer.invoke("player-mac-vlc-acknowledge", id, version),
+    onMacVlcProgress: (callback) => {
+      const listener = (_event, progress) => callback(progress);
+      ipcRenderer.on("player-mac-vlc-progress", listener);
+      return () =>
+        ipcRenderer.removeListener("player-mac-vlc-progress", listener);
+    },
+    onMacVlcWarning: (callback) => {
+      const listener = (_event, message) => callback(message);
+      ipcRenderer.on("player-mac-vlc-warning", listener);
+      return () =>
+        ipcRenderer.removeListener("player-mac-vlc-warning", listener);
+    },
     getAll: () => ipcRenderer.invoke("player-get-all"),
     getDefault: () => ipcRenderer.invoke("player-get-default"),
     setDefault: (playerId) =>
