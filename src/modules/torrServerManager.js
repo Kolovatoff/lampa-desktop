@@ -5,13 +5,15 @@ const path = require("node:path");
 const fs = require("node:fs").promises;
 const { existsSync } = require("node:fs");
 const https = require("node:https");
-const { pipeline } = require("node:stream/promises");
 const { createWriteStream } = require("node:fs");
 const store = require("./storeManager");
 
 // Конфигурация
-const GITHUB_API =
-  "https://api.github.com/repos/YouROK/TorrServer/releases/latest";
+const GITHUB_RELEASES_API =
+  "https://api.github.com/repos/YouROK/TorrServer/releases?per_page=10";
+
+// Сколько страниц максимум просматривать при поиске MatriX-релиза
+const MAX_RELEASE_PAGES = 5;
 
 class TorrServerManager {
   constructor() {
@@ -22,6 +24,8 @@ class TorrServerManager {
     this.outputListeners = [];
     this.gstSupport = null;
     this.version = null;
+    // Прогресс текущей загрузки (null, если загрузки нет)
+    this.downloadProgress = null;
   }
 
   // Определение платформы
@@ -68,6 +72,9 @@ class TorrServerManager {
     const localExeName = platform === "win32" ? "torrserver.exe" : "torrserver";
     const saveDir = path.join(app.getPath("userData"), "torrserver");
     const savePath = path.join(saveDir, localExeName);
+    // Временный файл, в который идёт скачивание. Переименовывается в savePath
+    // только после успешного завершения загрузки.
+    const downloadPath = `${savePath}.download`;
     const dataDir = path.join(saveDir, "data");
 
     return {
@@ -79,6 +86,7 @@ class TorrServerManager {
       localExeName,
       saveDir,
       savePath,
+      downloadPath,
       dataDir,
       useGst,
     };
@@ -95,6 +103,19 @@ class TorrServerManager {
       // Создаем папку для данных (важно!)
       await fs.mkdir(info.dataDir, { recursive: true });
 
+      // Удаляем «осиротевший» временный файл, если он остался с прошлого раза
+      try {
+        if (existsSync(info.downloadPath)) {
+          await fs.unlink(info.downloadPath);
+          console.log(`🧹 Удален незавершённый файл: ${info.downloadPath}`);
+        }
+      } catch (cleanupError) {
+        console.warn(
+          "⚠️ Не удалось удалить незавершённый файл:",
+          cleanupError.message,
+        );
+      }
+
       console.log("✅ Директории созданы:", {
         saveDir: info.saveDir,
         dataDir: info.dataDir,
@@ -107,27 +128,135 @@ class TorrServerManager {
     }
   }
 
-  // Получение последней версии с GitHub
-  async getLatestRelease() {
-    try {
-      const response = await fetch(GITHUB_API, {
-        headers: { "User-Agent": "Electron-App" },
-      });
-      const data = await response.json();
+  // Проверка, что релиз относится к проекту MatriX
+  isMatrixRelease(release) {
+    if (!release) return false;
+    const tag = (release.tag_name || "").toString();
+    const name = (release.name || "").toString();
+    return tag.includes("MatriX") || name.includes("MatriX");
+  }
 
-      if (!data.tag_name) {
-        throw new Error("Не удалось получить информацию о версии");
+  // Получение последнего релиза MatriX (перебор релизов, игнорируя Silo и прочее)
+  async getLatestMatrixRelease() {
+    try {
+      let page = 1;
+      while (page <= MAX_RELEASE_PAGES) {
+        const url = `${GITHUB_RELEASES_API}&page=${page}`;
+        const response = await fetch(url, {
+          headers: { "User-Agent": "Electron-App" },
+        });
+
+        if (!response.ok) {
+          throw new Error(`GitHub API HTTP ${response.status}`);
+        }
+
+        const releases = await response.json();
+        if (!Array.isArray(releases) || releases.length === 0) {
+          break;
+        }
+
+        const matrixRelease = releases.find((r) => this.isMatrixRelease(r));
+        if (matrixRelease) {
+          this.currentVersion = matrixRelease.tag_name;
+          console.log(
+            `✅ Найден MatriX-релиз: ${matrixRelease.tag_name} (${matrixRelease.name || "без имени"})`,
+          );
+          return {
+            version: matrixRelease.tag_name,
+            name: matrixRelease.name || null,
+            assets: matrixRelease.assets || [],
+          };
+        }
+
+        // Если на странице меньше per_page — дальше страниц нет
+        if (releases.length < 10) break;
+        page += 1;
       }
 
-      this.currentVersion = data.tag_name;
-      return {
-        version: data.tag_name,
-        assets: data.assets || [],
-      };
+      throw new Error("Не найден релиз с MatriX в названии");
     } catch (error) {
-      console.error("Ошибка получения последней версии:", error);
+      console.error("Ошибка получения MatriX-релиза:", error);
       throw error;
     }
+  }
+
+  // Обратная совместимость: раньше метод назывался getLatestRelease.
+  // Теперь он возвращает именно MatriX-релиз.
+  async getLatestRelease() {
+    return this.getLatestMatrixRelease();
+  }
+
+  // Скачивание файла с прогрессом
+  downloadFileWithProgress(url, destPath, onProgress) {
+    return new Promise((resolve, reject) => {
+      https
+        .get(url, (res) => {
+          // Обработка редиректов (GitHub отдаёт 301/302)
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            const location = res.headers.location;
+            if (!location) {
+              reject(new Error("Редирект без Location"));
+              return;
+            }
+            res.resume(); // освобождаем поток
+            this.downloadFileWithProgress(location, destPath, onProgress)
+              .then(resolve)
+              .catch(reject);
+            return;
+          }
+
+          if (res.statusCode !== 200) {
+            res.resume();
+            reject(new Error(`HTTP ${res.statusCode}`));
+            return;
+          }
+
+          const total = parseInt(res.headers["content-length"], 10) || 0;
+          let received = 0;
+          let lastPercent = -1;
+
+          const fileStream = createWriteStream(destPath);
+
+          res.on("data", (chunk) => {
+            received += chunk.length;
+            fileStream.write(chunk);
+
+            if (onProgress) {
+              const percent =
+                total > 0 ? Math.floor((received / total) * 100) : null;
+              // Не спамим одинаковыми процентами
+              if (percent === null || percent !== lastPercent) {
+                lastPercent = percent;
+                onProgress({ received, total, percent });
+              }
+            }
+          });
+
+          res.on("end", () => {
+            fileStream.end();
+          });
+
+          fileStream.on("finish", () => {
+            if (onProgress) {
+              onProgress({
+                received,
+                total: total || received,
+                percent: 100,
+              });
+            }
+            resolve({ received, total: total || received });
+          });
+
+          fileStream.on("error", (err) => {
+            reject(err);
+          });
+
+          res.on("error", (err) => {
+            reject(err);
+          });
+        })
+        .on("error", reject);
+    });
   }
 
   // Загрузка TorrServer
@@ -138,8 +267,8 @@ class TorrServerManager {
       // Сначала создаем все необходимые папки
       await this.ensureDirectories();
 
-      // Получаем информацию о последнем релизе
-      const release = await this.getLatestRelease();
+      // Получаем информацию о последнем MatriX-релизе
+      const release = await this.getLatestMatrixRelease();
       const targetVersion = version === "latest" ? release.version : version;
 
       // Логируем текущие настройки
@@ -193,26 +322,60 @@ class TorrServerManager {
 
       console.log(`🌐 URL для скачивания: ${downloadUrl}`);
 
-      const response = await new Promise((resolve, reject) => {
-        https
-          .get(downloadUrl, (res) => {
-            if (res.statusCode === 302 || res.statusCode === 301) {
-              https.get(res.headers.location, resolve).on("error", reject);
-            } else if (res.statusCode === 200) {
-              resolve(res);
-            } else {
-              reject(new Error(`HTTP ${res.statusCode}`));
-            }
-          })
-          .on("error", reject);
-      });
+      // Инициализируем прогресс
+      this.downloadProgress = {
+        received: 0,
+        total: 0,
+        percent: 0,
+        file: info.localExeName,
+        version: targetVersion,
+        startedAt: Date.now(),
+      };
 
-      const fileStream = createWriteStream(info.savePath);
-      await pipeline(response, fileStream);
+      // Скачиваем во временный файл
+      try {
+        await this.downloadFileWithProgress(
+          downloadUrl,
+          info.downloadPath,
+          (progress) => {
+            this.downloadProgress = {
+              ...this.downloadProgress,
+              ...progress,
+            };
+            this.notifyListeners("download-progress", {
+              ...progress,
+              file: info.localExeName,
+              version: targetVersion,
+            });
+          },
+        );
 
-      // Для Linux/Mac делаем файл исполняемым
-      if (info.platform !== "win32") {
-        await fs.chmod(info.savePath, 0o755);
+        // Проверяем, что файл действительно скачался и не пустой
+        const stat = await fs.stat(info.downloadPath);
+        if (!stat.size) {
+          throw new Error("Скачанный файл пуст");
+        }
+
+        // Для Linux/Mac делаем временный файл исполняемым до переименования
+        if (info.platform !== "win32") {
+          await fs.chmod(info.downloadPath, 0o755);
+        }
+
+        // Атомарно заменяем итоговый файл
+        await fs.rename(info.downloadPath, info.savePath);
+      } catch (downloadError) {
+        // При ошибке удаляем временный файл, чтобы не оставлять мусор
+        try {
+          if (existsSync(info.downloadPath)) {
+            await fs.unlink(info.downloadPath);
+          }
+        } catch (cleanupError) {
+          console.warn(
+            "⚠️ Не удалось удалить временный файл:",
+            cleanupError.message,
+          );
+        }
+        throw downloadError;
       }
 
       // Сохраняем информацию о версии и настройках
@@ -222,6 +385,9 @@ class TorrServerManager {
       store.set("tsGstEnabled", info.useGst);
 
       this.executablePath = info.savePath;
+
+      // Сбрасываем прогресс
+      this.downloadProgress = null;
 
       console.log(`✅ TorrServer успешно загружен в ${info.savePath}`);
       console.log(
@@ -235,6 +401,7 @@ class TorrServerManager {
         useGst: info.useGst,
       };
     } catch (error) {
+      this.downloadProgress = null;
       console.error("❌ Ошибка загрузки TorrServer:", error);
       return { success: false, message: error.message };
     }
@@ -245,7 +412,7 @@ class TorrServerManager {
     try {
       await this.ensureDirectories();
 
-      const release = await this.getLatestRelease();
+      const release = await this.getLatestMatrixRelease();
       const targetVersion = version === "latest" ? release.version : version;
 
       const asset = release.assets.find((a) => a.name === info.githubExeName);
@@ -255,25 +422,54 @@ class TorrServerManager {
 
       const downloadUrl = `https://github.com/YouROK/TorrServer/releases/download/${targetVersion}/${info.githubExeName}`;
 
-      const response = await new Promise((resolve, reject) => {
-        https
-          .get(downloadUrl, (res) => {
-            if (res.statusCode === 302 || res.statusCode === 301) {
-              https.get(res.headers.location, resolve).on("error", reject);
-            } else if (res.statusCode === 200) {
-              resolve(res);
-            } else {
-              reject(new Error(`HTTP ${res.statusCode}`));
-            }
-          })
-          .on("error", reject);
-      });
+      this.downloadProgress = {
+        received: 0,
+        total: 0,
+        percent: 0,
+        file: info.localExeName,
+        version: targetVersion,
+        startedAt: Date.now(),
+      };
 
-      const fileStream = createWriteStream(info.savePath);
-      await pipeline(response, fileStream);
+      try {
+        await this.downloadFileWithProgress(
+          downloadUrl,
+          info.downloadPath,
+          (progress) => {
+            this.downloadProgress = {
+              ...this.downloadProgress,
+              ...progress,
+            };
+            this.notifyListeners("download-progress", {
+              ...progress,
+              file: info.localExeName,
+              version: targetVersion,
+            });
+          },
+        );
 
-      if (info.platform !== "win32") {
-        await fs.chmod(info.savePath, 0o755);
+        const stat = await fs.stat(info.downloadPath);
+        if (!stat.size) {
+          throw new Error("Скачанный файл пуст");
+        }
+
+        if (info.platform !== "win32") {
+          await fs.chmod(info.downloadPath, 0o755);
+        }
+
+        await fs.rename(info.downloadPath, info.savePath);
+      } catch (downloadError) {
+        try {
+          if (existsSync(info.downloadPath)) {
+            await fs.unlink(info.downloadPath);
+          }
+        } catch (cleanupError) {
+          console.warn(
+            "⚠️ Не удалось удалить временный файл:",
+            cleanupError.message,
+          );
+        }
+        throw downloadError;
       }
 
       store.set("tsVersion", targetVersion);
@@ -282,6 +478,7 @@ class TorrServerManager {
       store.set("tsGstEnabled", info.useGst);
 
       this.executablePath = info.savePath;
+      this.downloadProgress = null;
 
       return {
         success: true,
@@ -290,6 +487,7 @@ class TorrServerManager {
         useGst: info.useGst,
       };
     } catch (error) {
+      this.downloadProgress = null;
       console.error("❌ Ошибка загрузки:", error);
       return { success: false, message: error.message };
     }
@@ -398,7 +596,7 @@ class TorrServerManager {
     try {
       const info = this.getPlatformInfo();
 
-      // Создание папки перед каждым запуском
+      // Создание папки перед каждым запуском (и очистка .download)
       await this.ensureDirectories();
 
       // Проверяем наличие исполняемого файла
@@ -632,7 +830,7 @@ class TorrServerManager {
       console.log(`🗑️ Удален старый файл: ${info.savePath}`);
     }
 
-    // Удаляем старый файл (требуется для обратной совместимости) Потом удалить.
+    // Удаляем старый файл (требуется для обратной совместимости)
     const savedPath = store.get("tsPath");
     const executablePath =
       savedPath && existsSync(savedPath) ? savedPath : info.savePath;
@@ -672,6 +870,13 @@ class TorrServerManager {
         await fs.unlink(executablePath);
         deletedItems.push(executablePath);
         console.log(`🗑️ Удален исполняемый файл: ${executablePath}`);
+      }
+
+      // Удаляем временный файл, если он есть
+      if (existsSync(info.downloadPath)) {
+        await fs.unlink(info.downloadPath);
+        deletedItems.push(info.downloadPath);
+        console.log(`🗑️ Удален временный файл: ${info.downloadPath}`);
       }
 
       // Удаляем папку с данными, если не указано keepData: true
@@ -729,6 +934,7 @@ class TorrServerManager {
       this.currentVersion = null;
       this.gstSupport = null;
       this.version = null;
+      this.downloadProgress = null;
 
       console.log("✅ TorrServer успешно удален");
       console.log(
@@ -785,7 +991,7 @@ class TorrServerManager {
     try {
       const currentVersion = store.get("tsVersion");
       const useGst = store.get("tsUseGst", false);
-      const latest = await this.getLatestRelease();
+      const latest = await this.getLatestMatrixRelease();
 
       if (!currentVersion) {
         return {
@@ -848,7 +1054,7 @@ class TorrServerManager {
 
       // Проверяем, есть ли файл с нужной настройкой GST в релизе
       const info = this.getPlatformInfo();
-      const latest = await this.getLatestRelease();
+      const latest = await this.getLatestMatrixRelease();
       const assetExists = latest.assets.some(
         (a) => a.name === info.githubExeName,
       );
@@ -955,6 +1161,10 @@ class TorrServerManager {
       useGst: useGst,
       gstSupported: this.gstSupport,
       serverVersion: this.version,
+      // Прогресс текущей загрузки (null, если загрузки нет)
+      downloadProgress: this.downloadProgress
+        ? { ...this.downloadProgress }
+        : null,
       // Добавляем информацию о том, соответствует ли установленная версия настройке GST
       gstMismatch:
         isInstalled && store.get("tsGstEnabled") !== undefined
