@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.8.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.7.0...v1.8.0) (2026-11-19)
+
+### ✨ Новые возможности
+
+- добавлен кастомный electron с коддержкой расширенных кодеков ([3cd6f27](https://github.com/Kolovatoff/lampa-desktop/commit/3cd6f27b9ce2ebb3cdf0982f34905c552531b7fe))
+
+### ♻️ Рефакторинг
+
+- добавлен поиск MPV плеера и новые пути поиска MPC-HC ([6a38eeb](https://github.com/Kolovatoff/lampa-desktop/commit/6a38eebc4223455fceca4e8216e46e08f9927411))
+- изменена проверка TorrServer на GitHub, скачивается TS, а не Silo ([480fca9](https://github.com/Kolovatoff/lampa-desktop/commit/480fca937c46ac7d8dbddaf00735a3491bf5daeb))
+- убран принудительный выбор внешнего плеера ([883b887](https://github.com/Kolovatoff/lampa-desktop/commit/883b88726d81d15b55848ab88635cd851ee983c0))
+- фон по-умолчанию как у Lampa и не останавливать загрузки пока приложение свернуто ([f8a9b7e](https://github.com/Kolovatoff/lampa-desktop/commit/f8a9b7e7fbdea81d6c4ad513d4ad7f74801f9e39))
+
 ## [1.7.0](https://github.com/Kolovatoff/lampa-desktop/compare/v1.6.1...v1.7.0) (2026-10-29)
 
 ### ✨ Новые возможности
